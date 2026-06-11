@@ -1,15 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Api\TelemetryController;
 
-// Temporary debug route to instantly return 201 to your NodeMCU
-Route::post('/v1/smartguard/telemetry', function (Request $request) {
-    Log::info('Incoming Data!', $request->all()); // Log it to storage/logs/laravel.log
-    
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Telemetry received by HP Laptop!'
-    ], 201); 
+use App\Http\Middleware\CheckSmartGuardToken;
+
+Route::prefix('v1/smartguard')->middleware(CheckSmartGuardToken::class)->group(function () {
+    Route::post('/telemetry', [TelemetryController::class, 'store']);
+    Route::get('/telemetry/latest', [TelemetryController::class, 'latest']);
 });

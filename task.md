@@ -144,8 +144,8 @@ protected $fillable = [...];
 
 Run migrations only after all schemas are finalized. [DONE]
 
-Phase 3: Secure Telemetry API
-Routes
+Phase 3: Secure Telemetry API [COMPLETED]
+Routes [DONE]
 
 Create:
 
@@ -153,12 +153,12 @@ Route::prefix('v1/smartguard')->group(function () {
     Route::post('/telemetry', [TelemetryController::class, 'store']);
     Route::get('/telemetry/latest', [TelemetryController::class, 'latest']);
 });
-Telemetry Controller
+Telemetry Controller [DONE]
 
 Create:
 
 App\Http\Controllers\Api\TelemetryController
-Security Layer
+Security Layer [DONE]
 
 Verify:
 
@@ -177,7 +177,7 @@ Invalid token:
 Return:
 
 401 Unauthorized
-Payload Validation
+Payload Validation [DONE]
 
 Required:
 
@@ -208,7 +208,7 @@ power_factor => required|numeric
 energy_kwh => required|numeric
 
 relay_status => required|integer|in:0,1
-Device Auto Registration
+Device Auto Registration [DONE]
 
 Use:
 
@@ -220,7 +220,7 @@ SmartGuard Unit 1
 
 as fallback name.
 
-Relay Transition Detection
+Relay Transition Detection [DONE]
 
 Compare previous reading.
 
@@ -235,7 +235,7 @@ AUTO_TRIP
 Triggered by:
 
 HARDWARE_ENGINE
-Fault Lifecycle Management
+Fault Lifecycle Management [DONE]
 
 If:
 
@@ -250,7 +250,7 @@ status = RUN
 Resolve all open incidents:
 
 resolved_at = now()
-Persistence
+Persistence [DONE]
 
 Store telemetry.
 
