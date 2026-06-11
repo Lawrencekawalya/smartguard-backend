@@ -1,47 +1,187 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
+import { Head, usePage } from '@inertiajs/vue3';
+import { ref, onMounted, computed } from 'vue';
 import { dashboard } from '@/routes';
+import AppLayout from '@/layouts/AppLayout.vue';
+import StatusBanner from '@/components/SmartGuard/StatusBanner.vue';
+import MetricCard from '@/components/SmartGuard/MetricCard.vue';
+import FaultHistoryTable from '@/components/SmartGuard/FaultHistoryTable.vue';
+import RelayHistoryTable from '@/components/SmartGuard/RelayHistoryTable.vue';
+import VoltageTrendChart from '@/components/SmartGuard/VoltageTrendChart.vue';
+import CurrentTrendChart from '@/components/SmartGuard/CurrentTrendChart.vue';
+import PowerTrendChart from '@/components/SmartGuard/PowerTrendChart.vue';
+import { 
+    Zap, 
+    Activity, 
+    Cpu, 
+    Gauge, 
+    ZapOff, 
+    ShieldAlert, 
+    Battery, 
+    Clock 
+} from '@lucide/vue';
 
 defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Dashboard',
-                href: dashboard(),
-            },
-        ],
-    },
+    layout: AppLayout,
+});
+
+const page = usePage();
+const token = computed(() => page.props.smartguard_api_token as string);
+const deviceCode = 'SmartGuard-MTR-001';
+
+const statusData = ref<any>(null);
+const readingData = ref<any>(null);
+const voltageTrend = ref<any[]>([]);
+const currentTrend = ref<any[]>([]);
+const powerTrend = ref<any[]>([]);
+const faultHistory = ref<any[]>([]);
+const relayHistory = ref<any[]>([]);
+const loading = ref(true);
+const error = ref<string | null>(null);
+
+const fetchData = async () => {
+    loading.value = true;
+    error.value = null;
+    
+    const headers = {
+        'X-SmartGuard-Token': token.value,
+        'Accept': 'application/json',
+    };
+
+    try {
+        const [statusRes, readingRes, faultRes, relayRes, vTrendRes, iTrendRes, pTrendRes] = await Promise.all([
+            fetch(`/api/v1/smartguard/dashboard/status?device_code=${deviceCode}`, { headers }),
+            fetch(`/api/v1/smartguard/dashboard/latest-reading?device_code=${deviceCode}`, { headers }),
+            fetch(`/api/v1/smartguard/dashboard/fault-history?device_code=${deviceCode}&limit=5`, { headers }),
+            fetch(`/api/v1/smartguard/dashboard/relay-history?device_code=${deviceCode}&limit=5`, { headers }),
+            fetch(`/api/v1/smartguard/dashboard/voltage-trend?device_code=${deviceCode}`, { headers }),
+            fetch(`/api/v1/smartguard/dashboard/current-trend?device_code=${deviceCode}`, { headers }),
+            fetch(`/api/v1/smartguard/dashboard/power-trend?device_code=${deviceCode}`, { headers }),
+        ]);
+
+        if (!statusRes.ok || !readingRes.ok) {
+            throw new Error('Failed to fetch dashboard data');
+        }
+
+        const [statusJson, readingJson, faultJson, relayJson, vTrendJson, iTrendJson, pTrendJson] = await Promise.all([
+            statusRes.json(),
+            readingRes.json(),
+            faultRes.json(),
+            relayRes.json(),
+            vTrendRes.json(),
+            iTrendRes.json(),
+            pTrendRes.json(),
+        ]);
+
+        statusData.value = statusJson.data;
+        readingData.value = readingJson.data;
+        faultHistory.value = faultJson.data;
+        relayHistory.value = relayJson.data;
+        voltageTrend.value = vTrendJson;
+        currentTrend.value = iTrendJson;
+        powerTrend.value = pTrendJson;
+    } catch (e: any) {
+        error.value = e.message || 'An unexpected error occurred';
+    } finally {
+        loading.value = false;
+    }
+};
+
+onMounted(() => {
+    fetchData();
 });
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="SmartGuard Dashboard" />
 
-    <div
-        class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
+    <div class="flex flex-1 flex-col gap-6 p-6">
+        <div v-if="loading" class="flex flex-1 items-center justify-center">
+            <div class="flex flex-col items-center gap-2">
+                <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                <p class="text-muted-foreground">Loading telemetry...</p>
             </div>
         </div>
-        <div
-            class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
-        >
-            <PlaceholderPattern />
+
+        <div v-else-if="error" class="flex flex-1 items-center justify-center">
+            <div class="rounded-xl border border-red-500/20 bg-red-500/10 p-6 text-center">
+                <ShieldAlert class="mx-auto h-12 w-12 text-red-500" />
+                <h3 class="mt-4 text-lg font-bold text-red-600">Connection Error</h3>
+                <p class="mt-1 text-muted-foreground">{{ error }}</p>
+                <button @click="fetchData" class="mt-4 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700">
+                    Retry Connection
+                </button>
+            </div>
         </div>
+
+        <template v-else>
+            <!-- Status Banner -->
+            <StatusBanner 
+                :status="statusData?.status" 
+                :fault-reason="statusData?.fault_status !== 'RUN' ? statusData?.fault_status : ''" 
+            />
+
+            <!-- Metric Cards Grid -->
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <MetricCard 
+                    label="Voltage" 
+                    :value="readingData?.voltage || '0.00'" 
+                    unit="Vrms" 
+                    :icon="Zap" 
+                />
+                <MetricCard 
+                    label="Current" 
+                    :value="readingData?.current || '0.000'" 
+                    unit="Irms" 
+                    :icon="Activity" 
+                />
+                <MetricCard 
+                    label="Real Power" 
+                    :value="readingData?.real_power || '0'" 
+                    unit="W" 
+                    :icon="Cpu" 
+                />
+                <MetricCard 
+                    label="Apparent Power" 
+                    :value="readingData?.apparent_power || '0'" 
+                    unit="VA" 
+                    :icon="Gauge" 
+                />
+                <MetricCard 
+                    label="Power Factor" 
+                    :value="readingData?.power_factor || '0.00'" 
+                    :icon="Clock" 
+                />
+                <MetricCard 
+                    label="Relay Status" 
+                    :value="statusData?.relay_status ? 'ON' : 'OFF'" 
+                    :icon="statusData?.relay_status ? Zap : ZapOff" 
+                />
+                <MetricCard 
+                    label="Fault Status" 
+                    :value="statusData?.status || 'UNKNOWN'" 
+                    :icon="ShieldAlert" 
+                />
+                <MetricCard 
+                    label="Energy" 
+                    :value="readingData?.energy_kwh || '0.00'" 
+                    unit="kWh" 
+                    :icon="Battery" 
+                />
+            </div>
+
+            <!-- Trend Charts Grid -->
+            <div class="grid gap-6 lg:grid-cols-3">
+                <VoltageTrendChart :data="voltageTrend" :loading="loading" />
+                <CurrentTrendChart :data="currentTrend" :loading="loading" />
+                <PowerTrendChart :data="powerTrend" :loading="loading" />
+            </div>
+
+            <!-- History Tables -->
+            <div class="grid gap-6 lg:grid-cols-2">
+                <FaultHistoryTable :faults="faultHistory" />
+                <RelayHistoryTable :logs="relayHistory" />
+            </div>
+        </template>
     </div>
 </template>

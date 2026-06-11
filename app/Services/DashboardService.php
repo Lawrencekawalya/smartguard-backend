@@ -87,4 +87,55 @@ class DashboardService
             ->limit(12)
             ->get();
     }
+
+    public function getVoltageTrend(string $deviceCode, int $limit = 50): Collection
+    {
+        $device = Device::where('device_code', $deviceCode)->first();
+        if (!$device) return collect();
+
+        return $device->readings()
+            ->latest('id')
+            ->limit($limit)
+            ->get()
+            ->reverse()
+            ->map(fn($r) => [
+                'time' => $r->created_at->format('H:i:s'),
+                'value' => (float) $r->voltage
+            ])
+            ->values();
+    }
+
+    public function getCurrentTrend(string $deviceCode, int $limit = 50): Collection
+    {
+        $device = Device::where('device_code', $deviceCode)->first();
+        if (!$device) return collect();
+
+        return $device->readings()
+            ->latest('id')
+            ->limit($limit)
+            ->get()
+            ->reverse()
+            ->map(fn($r) => [
+                'time' => $r->created_at->format('H:i:s'),
+                'value' => (float) $r->current
+            ])
+            ->values();
+    }
+
+    public function getPowerTrend(string $deviceCode, int $limit = 50): Collection
+    {
+        $device = Device::where('device_code', $deviceCode)->first();
+        if (!$device) return collect();
+
+        return $device->readings()
+            ->latest('id')
+            ->limit($limit)
+            ->get()
+            ->reverse()
+            ->map(fn($r) => [
+                'time' => $r->created_at->format('H:i:s'),
+                'value' => (float) $r->real_power
+            ])
+            ->values();
+    }
 }

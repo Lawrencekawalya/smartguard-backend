@@ -19,5 +19,8 @@ Route::prefix('v1/smartguard')->middleware(CheckSmartGuardToken::class)->group(f
         Route::get('/relay-history', [DashboardController::class, 'relayHistory']);
         Route::get('/daily-usage', [DashboardController::class, 'dailyUsage']);
         Route::get('/monthly-usage', [DashboardController::class, 'monthlyUsage']);
+        Route::get('/voltage-trend', [DashboardController::class, 'voltageTrend']);
+        Route::get('/current-trend', [DashboardController::class, 'currentTrend']);
+        Route::get('/power-trend', [DashboardController::class, 'powerTrend']);
     });
 });

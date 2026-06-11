@@ -117,4 +117,40 @@ class DashboardController extends Controller
 
         return EnergyUsageResource::collection($usage);
     }
+
+    public function voltageTrend(Request $request)
+    {
+        $deviceCode = $this->getDeviceCode($request);
+        if (!$deviceCode) {
+            return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $trend = $this->dashboardService->getVoltageTrend($deviceCode);
+
+        return response()->json($trend);
+    }
+
+    public function currentTrend(Request $request)
+    {
+        $deviceCode = $this->getDeviceCode($request);
+        if (!$deviceCode) {
+            return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $trend = $this->dashboardService->getCurrentTrend($deviceCode);
+
+        return response()->json($trend);
+    }
+
+    public function powerTrend(Request $request)
+    {
+        $deviceCode = $this->getDeviceCode($request);
+        if (!$deviceCode) {
+            return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $trend = $this->dashboardService->getPowerTrend($deviceCode);
+
+        return response()->json($trend);
+    }
 }

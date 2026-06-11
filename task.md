@@ -61,7 +61,7 @@ $table->index('device_id');
 $table->index('created_at');
 $table->index(['device_id', 'created_at']);
 
-This table will eventually contain millions of records.
+This table will eventually contain millions of records. 
 
 Task 1.3: Create Faults Module [DONE]
 Model
@@ -275,12 +275,12 @@ Device Status
 
 Responses should be optimized for dashboard consumption. [DONE]
 
-Phase 5: Vue Dashboard
+Phase 5: SmartGuard Dashboard UI [COMPLETED]
 
-Create:
+Create: [DONE]
 
 resources/js/Pages/Dashboard.vue
-Live Status Banner
+Live Status Banner [DONE]
 
 Normal:
 
@@ -299,7 +299,7 @@ Display:
 
 Flashing red
 Highest visual priority
-Telemetry Cards
+Telemetry Cards [DONE]
 
 Display:
 
@@ -311,7 +311,7 @@ Power Factor
 Relay Status
 Fault Status
 Energy (kWh)
-Fault History Table
+Fault History Table [DONE]
 
 Columns:
 
@@ -319,14 +319,30 @@ Fault Type
 Occurred At
 Resolved At
 Status
-Relay History Table
+Relay History Table [DONE]
 
 Columns:
 
 Action
 Triggered By
 Timestamp
-Phase 6: Live Data Polling
+
+Phase 5.1: Telemetry Trend Charts [COMPLETED]
+
+Backend: [DONE]
+
+GET /api/v1/smartguard/dashboard/voltage-trend
+GET /api/v1/smartguard/dashboard/current-trend
+GET /api/v1/smartguard/dashboard/power-trend
+
+Frontend: [DONE]
+
+Voltage Trend (Vrms)
+AC Current Trend (Irms)
+Power Consumption Trend (W)
+Smooth line curves
+Responsive sizing
+Tooltips and Grid lines
 
 Implement Vue polling:
 

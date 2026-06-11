@@ -24,6 +24,20 @@ IoT Monitoring Platform Backend built with Laravel 12.
 - `GET /api/v1/smartguard/dashboard/daily-usage`: Daily energy consumption data.
 - `GET /api/v1/smartguard/dashboard/monthly-usage`: Monthly energy aggregation.
 
+### Phase 5: SmartGuard Dashboard UI
+- Integrated SmartGuard telemetry into the main dashboard.
+- Reusable components: `StatusBanner`, `MetricCard`, `FaultHistoryTable`, `RelayHistoryTable`.
+- Real-time data visualization (Voltage, Current, Power, Energy, etc.).
+- Robust handling of loading, empty, and error states.
+- Responsive design following existing project themes.
+
+### Phase 5.1: Telemetry Trend Charts
+- `GET /api/v1/smartguard/dashboard/voltage-trend`: Voltage history for charting.
+- `GET /api/v1/smartguard/dashboard/current-trend`: Current history for charting.
+- `GET /api/v1/smartguard/dashboard/power-trend`: Power history for charting.
+- Integrated ApexCharts for smooth, responsive trend visualization.
+- Dark theme compatible with tooltips and grid lines.
+
 ## API Documentation
 
 All endpoints require `X-SmartGuard-Token` in the header.

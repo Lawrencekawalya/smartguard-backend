@@ -21,6 +21,11 @@ class DeviceReading extends Model
         'created_at',
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'relay_status' => 'boolean',
+    ];
+
     public function device()
     {
         return $this->belongsTo(Device::class);

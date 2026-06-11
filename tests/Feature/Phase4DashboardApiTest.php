@@ -120,3 +120,66 @@ test('monthly usage endpoint returns correct format', function () {
     $response->assertStatus(200)
              ->assertJsonFragment(['month' => '2026-06', 'monthly_kwh' => 430.2]);
 });
+
+test('voltage trend endpoint returns correct format', function () {
+    $device = Device::create(['device_code' => 'SmartGuard-MTR-001', 'device_name' => 'Unit 1']);
+    $device->readings()->create([
+        'voltage' => 235.5,
+        'current' => 1,
+        'real_power' => 200,
+        'apparent_power' => 200,
+        'power_factor' => 1,
+        'energy_kwh' => 1,
+        'relay_status' => true,
+        'fault_status' => 'RUN',
+        'created_at' => now(),
+    ]);
+
+    $response = $this->getJson('/api/v1/smartguard/dashboard/voltage-trend?device_code=SmartGuard-MTR-001', $this->headers);
+
+    $response->assertStatus(200)
+             ->assertJsonCount(1)
+             ->assertJsonPath('0.value', 235.5);
+});
+
+test('current trend endpoint returns correct format', function () {
+    $device = Device::create(['device_code' => 'SmartGuard-MTR-001', 'device_name' => 'Unit 1']);
+    $device->readings()->create([
+        'voltage' => 230,
+        'current' => 5.432,
+        'real_power' => 200,
+        'apparent_power' => 200,
+        'power_factor' => 1,
+        'energy_kwh' => 1,
+        'relay_status' => true,
+        'fault_status' => 'RUN',
+        'created_at' => now(),
+    ]);
+
+    $response = $this->getJson('/api/v1/smartguard/dashboard/current-trend?device_code=SmartGuard-MTR-001', $this->headers);
+
+    $response->assertStatus(200)
+             ->assertJsonCount(1)
+             ->assertJsonPath('0.value', 5.432);
+});
+
+test('power trend endpoint returns correct format', function () {
+    $device = Device::create(['device_code' => 'SmartGuard-MTR-001', 'device_name' => 'Unit 1']);
+    $device->readings()->create([
+        'voltage' => 230,
+        'current' => 1,
+        'real_power' => 1250.5,
+        'apparent_power' => 1300,
+        'power_factor' => 0.96,
+        'energy_kwh' => 1,
+        'relay_status' => true,
+        'fault_status' => 'RUN',
+        'created_at' => now(),
+    ]);
+
+    $response = $this->getJson('/api/v1/smartguard/dashboard/power-trend?device_code=SmartGuard-MTR-001', $this->headers);
+
+    $response->assertStatus(200)
+             ->assertJsonCount(1)
+             ->assertJsonPath('0.value', 1250.5);
+});
