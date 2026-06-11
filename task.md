@@ -261,9 +261,9 @@ devices.last_seen_at
 Return:
 
 201 Created
-Phase 4: Dashboard API Endpoints
+Phase 4: Dashboard API Endpoints [COMPLETED]
 
-Create endpoints for:
+Create endpoints for: [DONE]
 
 Latest Device Reading
 Latest Fault
@@ -273,7 +273,7 @@ Daily Energy Usage
 Monthly Energy Usage
 Device Status
 
-Responses should be optimized for dashboard consumption.
+Responses should be optimized for dashboard consumption. [DONE]
 
 Phase 5: Vue Dashboard
 

@@ -16,6 +16,10 @@ class Device extends Model
         'last_seen_at',
     ];
 
+    protected $casts = [
+        'last_seen_at' => 'datetime',
+    ];
+
     public function readings()
     {
         return $this->hasMany(DeviceReading::class);
