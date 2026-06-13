@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Device;
 use App\Models\DeviceReading;
 use App\Models\Fault;
+use App\Models\FaultSetting;
 use App\Models\RelayLog;
 use Illuminate\Support\Facades\DB;
 
@@ -41,20 +42,68 @@ class TelemetryService
                 ]);
             }
 
-            // 4. Fault Lifecycle Management
-            if ($data['status'] === 'TRIP') {
-                $existingFault = $device->faults()
-                    ->where('fault_type', $data['fault_reason'])
-                    ->whereNull('resolved_at')
-                    ->first();
+            // 4. Backend Threshold Validation & Fault Lifecycle Management
+            $detectedFaults = [];
 
-                if (!$existingFault) {
-                    $device->faults()->create([
-                        'fault_type' => $data['fault_reason'],
-                        'occurred_at' => now(),
-                    ]);
+            if ($data['status'] === 'TRIP') {
+                $detectedFaults[] = $data['fault_reason'];
+            }
+
+            // Check database-driven thresholds
+            $settings = FaultSetting::where('enabled', true)->get();
+
+            foreach ($settings as $setting) {
+                switch ($setting->parameter) {
+                    case 'voltage':
+                        if ($data['voltage'] > $setting->max_value) {
+                            $detectedFaults[] = 'OVERVOLTAGE SURGE';
+                        } elseif ($data['voltage'] < $setting->min_value) {
+                            $detectedFaults[] = 'UNDERVOLTAGE BROWNOUT';
+                        }
+                        break;
+                    case 'current':
+                        if ($data['current'] > $setting->max_value) {
+                            $detectedFaults[] = 'OVERCURRENT DETECTED';
+                        }
+                        break;
+                    case 'power_factor':
+                        if ($setting->min_value > 0 && $data['power_factor'] < $setting->min_value) {
+                            $detectedFaults[] = 'LOW_POWER_FACTOR';
+                        }
+                        break;
+                    case 'real_power':
+                        if ($setting->max_value > 0 && $data['real_power'] > $setting->max_value) {
+                            $detectedFaults[] = 'OVERLOAD';
+                        }
+                        break;
+                    case 'apparent_power':
+                        if ($setting->max_value > 0 && $data['apparent_power'] > $setting->max_value) {
+                            $detectedFaults[] = 'OVERAPPARENT';
+                        }
+                        break;
+                }
+            }
+
+            $detectedFaults = array_unique($detectedFaults);
+
+            if (!empty($detectedFaults)) {
+                foreach ($detectedFaults as $faultType) {
+                    if ($faultType === 'NONE') continue;
+
+                    $existingFault = $device->faults()
+                        ->where('fault_type', $faultType)
+                        ->whereNull('resolved_at')
+                        ->first();
+
+                    if (!$existingFault) {
+                        $device->faults()->create([
+                            'fault_type' => $faultType,
+                            'occurred_at' => now(),
+                        ]);
+                    }
                 }
             } elseif ($data['status'] === 'RUN') {
+                // If status is RUN and no backend faults detected, resolve all open incidents
                 $device->faults()
                     ->whereNull('resolved_at')
                     ->update(['resolved_at' => now()]);
@@ -69,7 +118,7 @@ class TelemetryService
                 'power_factor' => $data['power_factor'],
                 'energy_kwh' => $data['energy_kwh'],
                 'relay_status' => (bool)$data['relay_status'],
-                'fault_status' => $data['status'],
+                'fault_status' => empty($detectedFaults) ? 'RUN' : ($data['status'] === 'TRIP' ? 'TRIP' : 'FAULT_DETECTED'),
                 'created_at' => now(),
             ]);
 

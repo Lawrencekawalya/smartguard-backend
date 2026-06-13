@@ -344,7 +344,9 @@ Smooth line curves
 Responsive sizing
 Tooltips and Grid lines
 
-Implement Vue polling:
+Phase 6: Live Data Polling [COMPLETED]
+
+Implement Vue polling: [DONE]
 
 setInterval(...)
 
@@ -352,13 +354,26 @@ Every:
 
 2000ms
 
-Endpoint:
+Endpoint: [DONE]
 
 /api/v1/smartguard/telemetry/latest
 
-Update cards without page refresh.
+Update cards without page refresh. [DONE]
 
-Prevent memory leaks by clearing intervals on component unmount.
+Prevent memory leaks by clearing intervals on component unmount. [DONE]
+
+Phase 6.1: Device Management & Fault Configuration [COMPLETED]
+
+Backend: [DONE]
+- Device CRUD API endpoints (`/api/v1/devices`).
+- Fault Settings management API (`/api/v1/fault-settings`).
+- Dynamic fault detection in `TelemetryService` using database-driven thresholds.
+- Automatic fault resolution logic when parameters return to normal.
+
+Frontend: [DONE]
+- Device management dashboard (Index, Create, Edit).
+- Fault configuration panel (FaultThresholds.vue).
+- Real-time device status and latest reading integration.
 
 Phase 7: Flutter Integration Readiness
 
@@ -390,3 +405,4 @@ API Versioning
 Structured Logging
 
 Code must be maintainable, testable, and scalable for continuous telemetry ingestion every 2 seconds from multiple SmartGuard devices.
+

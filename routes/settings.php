@@ -24,4 +24,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('user-password.update');
 
     Route::inertia('settings/appearance', 'settings/Appearance')->name('appearance.edit');
+
+    Route::get('settings/fault-thresholds', function () {
+        return Inertia\Inertia::render('settings/FaultThresholds', [
+            'settings' => \App\Models\FaultSetting::all(),
+        ]);
+    })->name('fault-thresholds.edit');
 });

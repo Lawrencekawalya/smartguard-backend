@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, usePage } from '@inertiajs/vue3';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { dashboard } from '@/routes';
 import AppLayout from '@/layouts/AppLayout.vue';
 import StatusBanner from '@/components/SmartGuard/StatusBanner.vue';
@@ -38,10 +38,13 @@ const faultHistory = ref<any[]>([]);
 const relayHistory = ref<any[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
+const pollInterval = ref<any>(null);
 
-const fetchData = async () => {
-    loading.value = true;
-    error.value = null;
+const fetchData = async (isInitial = false) => {
+    if (isInitial) {
+        loading.value = true;
+        error.value = null;
+    }
     
     const headers = {
         'X-SmartGuard-Token': token.value,
@@ -80,15 +83,35 @@ const fetchData = async () => {
         voltageTrend.value = vTrendJson;
         currentTrend.value = iTrendJson;
         powerTrend.value = pTrendJson;
+
+        if (!isInitial) {
+            error.value = null; // Clear non-blocking error on success
+        }
     } catch (e: any) {
-        error.value = e.message || 'An unexpected error occurred';
+        if (isInitial) {
+            error.value = e.message || 'An unexpected error occurred';
+        } else {
+            console.error('Polling error:', e);
+        }
     } finally {
-        loading.value = false;
+        if (isInitial) {
+            loading.value = false;
+        }
     }
 };
 
 onMounted(() => {
-    fetchData();
+    fetchData(true);
+
+    pollInterval.value = setInterval(() => {
+        fetchData();
+    }, 2000);
+});
+
+onUnmounted(() => {
+    if (pollInterval.value) {
+        clearInterval(pollInterval.value);
+    }
 });
 </script>
 

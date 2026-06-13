@@ -23,6 +23,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Appearance',
         href: editAppearance(),
     },
+    {
+        title: 'Fault Thresholds',
+        href: '/settings/fault-thresholds',
+    },
 ];
 
 const { isCurrentOrParentUrl } = useCurrentUrl();

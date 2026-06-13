@@ -38,23 +38,49 @@ IoT Monitoring Platform Backend built with Laravel 12.
 - Integrated ApexCharts for smooth, responsive trend visualization.
 - Dark theme compatible with tooltips and grid lines.
 
+### Phase 6: Live Dashboard Polling
+- Real-time dashboard updates every 2 seconds.
+- Automatic refresh of status, metrics, trends, and history.
+- Smart resource management with Vue lifecycle hooks.
+- Non-blocking error handling and automatic retry.
+
+### Phase 6.1: Device Management & Fault Configuration
+- `GET /api/v1/devices`: List all registered devices.
+- `POST /api/v1/devices`: Register new SmartGuard hardware.
+- `PUT /api/v1/fault-settings/{id}`: Dynamically adjust protection thresholds.
+- Backend-driven fault detection for Voltage (Over/Under) and Current (Over).
+- Settings dashboard for managing electrical protection limits.
+- Full Pest test suite for management APIs and telemetry integration.
+
+### Phase 6.2: Device Management Dashboard
+- **Devices List**: Comprehensive overview of all units with search, pagination, and status tracking.
+- **Device Provisioning**: Easy interface to register new hardware with location and network details.
+- **Device Details**: Deep-dive view showing latest telemetry, recent fault history, and relay state logs for specific units.
+- **Integrated Navigation**: "Devices" section added to the main sidebar for seamless platform management.
+- **Validation**: Full form validation and error handling for device management actions.
+
 ## API Documentation
 
-All endpoints require `X-SmartGuard-Token` in the header.
-
-### Endpoints
+### SmartGuard Telemetry APIs
+Requires `X-SmartGuard-Token` header.
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/api/v1/smartguard/telemetry` | Ingest telemetry |
 | `GET` | `/api/v1/smartguard/telemetry/latest` | Latest telemetry for device |
-| `GET` | `/api/v1/smartguard/dashboard/status` | System status |
-| `GET` | `/api/v1/smartguard/dashboard/latest-reading` | Latest reading |
-| `GET` | `/api/v1/smartguard/dashboard/latest-fault` | Latest fault |
-| `GET` | `/api/v1/smartguard/dashboard/fault-history` | Fault history |
-| `GET` | `/api/v1/smartguard/dashboard/relay-history` | Relay history |
-| `GET` | `/api/v1/smartguard/dashboard/daily-usage` | Daily energy usage |
-| `GET` | `/api/v1/smartguard/dashboard/monthly-usage` | Monthly energy usage |
+
+### Management & Settings APIs
+Requires Sanctum authentication.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/devices` | List devices |
+| `GET` | `/api/v1/devices/{id}` | Device details |
+| `POST` | `/api/v1/devices` | Create device |
+| `PUT` | `/api/v1/devices/{id}` | Update device |
+| `DELETE` | `/api/v1/devices/{id}` | Delete device |
+| `GET` | `/api/v1/fault-settings` | List protection limits |
+| `PUT` | `/api/v1/fault-settings/{id}` | Update protection limit |
 
 ## Testing
 
