@@ -1,14 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Api\TelemetryController;
 use App\Http\Controllers\Api\DashboardController;
-
-use App\Http\Middleware\CheckSmartGuardToken;
-
 use App\Http\Controllers\Api\DeviceController;
+use App\Http\Controllers\Api\EnergyAnalyticsController;
+use App\Http\Controllers\Api\EnergySettingController;
 use App\Http\Controllers\Api\FaultSettingController;
+use App\Http\Controllers\Api\TelemetryController;
+use App\Http\Middleware\CheckSmartGuardToken;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::apiResource('devices', DeviceController::class)->names('api.devices');
@@ -17,6 +16,19 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('devices/{device}/relay-logs', [DeviceController::class, 'relayLogs'])->name('api.devices.relay-logs');
 
     Route::apiResource('fault-settings', FaultSettingController::class)->only(['index', 'show', 'update'])->names('api.fault-settings');
+
+    Route::prefix('energy')->group(function () {
+        Route::get('/summary', [EnergyAnalyticsController::class, 'summary']);
+        Route::get('/daily', [EnergyAnalyticsController::class, 'daily']);
+        Route::get('/weekly', [EnergyAnalyticsController::class, 'weekly']);
+        Route::get('/monthly', [EnergyAnalyticsController::class, 'monthly']);
+        Route::get('/report', [EnergyAnalyticsController::class, 'report']);
+        Route::get('/export/csv', [EnergyAnalyticsController::class, 'exportCsv']);
+        Route::get('/export/pdf', [EnergyAnalyticsController::class, 'exportPdf']);
+
+        Route::get('/settings', [EnergySettingController::class, 'index']);
+        Route::put('/settings', [EnergySettingController::class, 'update']);
+    });
 });
 
 Route::prefix('v1/smartguard')->middleware(CheckSmartGuardToken::class)->group(function () {

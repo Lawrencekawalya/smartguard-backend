@@ -6,11 +6,14 @@ use App\Models\Device;
 use App\Models\DeviceReading;
 use App\Models\Fault;
 use App\Models\FaultSetting;
-use App\Models\RelayLog;
 use Illuminate\Support\Facades\DB;
 
 class TelemetryService
 {
+    public function __construct(
+        private readonly EnergySummaryService $energySummaryService
+    ) {}
+
     /**
      * Store telemetry data and handle side effects.
      */
@@ -20,16 +23,20 @@ class TelemetryService
             // 1. Device Auto Registration
             $device = Device::firstOrCreate(
                 ['device_code' => $data['device_code']],
-                ['device_name' => 'SmartGuard Unit ' . (Device::count() + 1)]
+                ['device_name' => 'SmartGuard Unit '.(Device::count() + 1)]
             );
+            $device = Device::query()
+                ->whereKey($device->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             // 2. Get previous reading for transition detection
             $previousReading = $device->readings()->latest('id')->first();
 
             // 3. Relay Transition Detection
-            if ($previousReading && (int)$previousReading->relay_status !== (int)$data['relay_status']) {
-                $action = (int)$data['relay_status'] === 1 ? 'ON' : 'OFF';
-                
+            if ($previousReading && (int) $previousReading->relay_status !== (int) $data['relay_status']) {
+                $action = (int) $data['relay_status'] === 1 ? 'ON' : 'OFF';
+
                 // Check if it was an AUTO_TRIP
                 if ($action === 'OFF' && $data['status'] === 'TRIP') {
                     $action = 'AUTO_TRIP';
@@ -86,16 +93,18 @@ class TelemetryService
 
             $detectedFaults = array_unique($detectedFaults);
 
-            if (!empty($detectedFaults)) {
+            if (! empty($detectedFaults)) {
                 foreach ($detectedFaults as $faultType) {
-                    if ($faultType === 'NONE') continue;
+                    if ($faultType === 'NONE') {
+                        continue;
+                    }
 
                     $existingFault = $device->faults()
                         ->where('fault_type', $faultType)
                         ->whereNull('resolved_at')
                         ->first();
 
-                    if (!$existingFault) {
+                    if (! $existingFault) {
                         $device->faults()->create([
                             'fault_type' => $faultType,
                             'occurred_at' => now(),
@@ -117,12 +126,15 @@ class TelemetryService
                 'apparent_power' => $data['apparent_power'],
                 'power_factor' => $data['power_factor'],
                 'energy_kwh' => $data['energy_kwh'],
-                'relay_status' => (bool)$data['relay_status'],
+                'relay_status' => (bool) $data['relay_status'],
                 'fault_status' => empty($detectedFaults) ? 'RUN' : ($data['status'] === 'TRIP' ? 'TRIP' : 'FAULT_DETECTED'),
                 'created_at' => now(),
             ]);
 
-            // 6. Update Device last_seen_at
+            // 6. Keep analytics summaries synchronized with cumulative meter readings.
+            $this->energySummaryService->recordReading($device, $reading, $previousReading);
+
+            // 7. Update Device last_seen_at
             $device->update(['last_seen_at' => now()]);
 
             return $reading;
@@ -136,7 +148,7 @@ class TelemetryService
     {
         $device = Device::where('device_code', $deviceCode)->first();
 
-        if (!$device) {
+        if (! $device) {
             return null;
         }
 

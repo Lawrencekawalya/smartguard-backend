@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
+use App\Models\FaultSetting;
+use App\Services\EnergyAnalyticsService;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Support\Facades\Route;
 
@@ -27,7 +29,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('settings/fault-thresholds', function () {
         return Inertia\Inertia::render('settings/FaultThresholds', [
-            'settings' => \App\Models\FaultSetting::all(),
+            'settings' => FaultSetting::all(),
         ]);
     })->name('fault-thresholds.edit');
+
+    Route::get('settings/energy', function (EnergyAnalyticsService $energyService) {
+        return Inertia\Inertia::render('settings/Energy', [
+            'setting' => $energyService->getSetting(),
+        ]);
+    })->name('energy-settings.edit');
 });

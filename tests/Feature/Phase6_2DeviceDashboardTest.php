@@ -24,7 +24,7 @@ test('device edit page loads', function () {
     $device = Device::create([
         'device_name' => 'Unit 1',
         'device_code' => 'SG-001',
-        'status' => 'active'
+        'status' => 'active',
     ]);
 
     $response = $this->actingAs($this->user)->get("/devices/{$device->id}/edit");
@@ -35,7 +35,7 @@ test('device show page loads', function () {
     $device = Device::create([
         'device_name' => 'Unit 1',
         'device_code' => 'SG-001',
-        'status' => 'active'
+        'status' => 'active',
     ]);
 
     $response = $this->actingAs($this->user)->get("/devices/{$device->id}");
@@ -46,21 +46,20 @@ test('can update a device through web route', function () {
     $device = Device::create([
         'device_name' => 'Original Name',
         'device_code' => 'SG-ORIG',
-        'status' => 'active'
+        'status' => 'active',
     ]);
 
     $response = $this->actingAs($this->user)
-                     ->withoutMiddleware()
-                     ->put("/devices/{$device->id}", [
-        'device_name' => 'Updated Name',
-        'device_code' => 'SG-ORIG',
-        'status' => 'inactive'
-    ]);
+        ->put("/devices/{$device->id}", [
+            'device_name' => 'Updated Name',
+            'device_code' => 'SG-ORIG',
+            'status' => 'inactive',
+        ]);
 
     $response->assertRedirect('/devices');
     $this->assertDatabaseHas('devices', [
         'id' => $device->id,
         'device_name' => 'Updated Name',
-        'status' => 'inactive'
+        'status' => 'inactive',
     ]);
 });

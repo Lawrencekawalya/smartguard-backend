@@ -27,6 +27,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Fault Thresholds',
         href: '/settings/fault-thresholds',
     },
+    {
+        title: 'Energy Settings',
+        href: '/settings/energy',
+    },
 ];
 
 const { isCurrentOrParentUrl } = useCurrentUrl();

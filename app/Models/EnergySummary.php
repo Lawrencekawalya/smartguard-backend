@@ -13,6 +13,11 @@ class EnergySummary extends Model
         'monthly_kwh',
     ];
 
+    protected $casts = [
+        'daily_kwh' => 'decimal:6',
+        'monthly_kwh' => 'decimal:6',
+    ];
+
     public function device()
     {
         return $this->belongsTo(Device::class);

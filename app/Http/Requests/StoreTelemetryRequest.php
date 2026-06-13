@@ -18,7 +18,7 @@ class StoreTelemetryRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -31,7 +31,7 @@ class StoreTelemetryRequest extends FormRequest
             'real_power' => 'required|numeric',
             'apparent_power' => 'required|numeric',
             'power_factor' => 'required|numeric',
-            'energy_kwh' => 'required|numeric',
+            'energy_kwh' => 'required|numeric|min:0',
             'relay_status' => 'required|integer|in:0,1',
         ];
     }

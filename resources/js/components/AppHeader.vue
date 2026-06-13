@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from '@lucide/vue';
+import { BookOpen, Folder, LayoutGrid, Menu, Search, Smartphone, Zap } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
@@ -56,8 +56,18 @@ const activeItemStyles =
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: '/dashboard',
         icon: LayoutGrid,
+    },
+    {
+        title: 'Devices',
+        href: '/devices',
+        icon: Smartphone,
+    },
+    {
+        title: 'Energy Analysis',
+        href: '/energy',
+        icon: Zap,
     },
 ];
 
@@ -146,7 +156,7 @@ const rightNavItems: NavItem[] = [
                     </Sheet>
                 </div>
 
-                <Link :href="dashboard()" class="flex items-center gap-x-2">
+                <Link href="/dashboard" class="flex items-center gap-x-2">
                     <AppLogo />
                 </Link>
 

@@ -375,6 +375,33 @@ Frontend: [DONE]
 - Fault configuration panel (FaultThresholds.vue).
 - Real-time device status and latest reading integration.
 
+Phase 6.3: Energy Analytics & Consumption Reporting [COMPLETED]
+
+Backend: [DONE]
+- `EnergyAnalyticsService` for multi-device data aggregation.
+- Database-driven tariff management (`energy_settings` table).
+- Validated API endpoints for energy summary and daily/weekly/monthly trends.
+- Historical consumption reporting API with peak power and fault counts.
+- Dynamic cost estimation using `energy_kwh × tariff_rate`.
+- CSV and PDF report exports that respect the selected date range.
+- API Resources and Form Requests for stable responses and input validation.
+
+Frontend: [DONE]
+- Dedicated Energy Analytics dashboard accessible from sidebar.
+- Summary cards for today, week, month, and estimated cost.
+- Responsive, dark-compatible ApexCharts for the last 30 days, 12 weeks, and 12 months.
+- Cost analysis table with database-driven tariff and currency formatting.
+- Daily management report with consumption, cost, peak power, and fault count.
+- CSV/PDF export controls that preserve active date filters.
+- Separate Settings > Energy Settings page for tariff, currency, and description.
+- Live daily and monthly summary aggregation during telemetry ingestion.
+- Ten-second background refresh while the Energy Analytics page is open.
+- `energy:rebuild-summaries` command for historical telemetry reconciliation.
+
+Verification: [DONE]
+- Phase 6.3 feature tests cover summaries, reports, calculations, exports, validation, authentication, and settings.
+- Production frontend build completed successfully.
+
 Phase 7: Flutter Integration Readiness
 
 The backend must expose clean REST endpoints for:
@@ -405,4 +432,3 @@ API Versioning
 Structured Logging
 
 Code must be maintainable, testable, and scalable for continuous telemetry ingestion every 2 seconds from multiple SmartGuard devices.
-

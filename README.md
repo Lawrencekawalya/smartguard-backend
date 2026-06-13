@@ -59,6 +59,20 @@ IoT Monitoring Platform Backend built with Laravel 12.
 - **Integrated Navigation**: "Devices" section added to the main sidebar for seamless platform management.
 - **Validation**: Full form validation and error handling for device management actions.
 
+### Phase 6.3: Energy Analytics & Consumption Reporting
+- **Energy Analytics Service**: Centralized logic for multi-device kWh aggregation and cost projection.
+- **Tariff Management**: Database-driven configuration for electricity rates (e.g., UMEME Residential Tariff).
+- **Consumption Dashboard**: Daily, weekly, and monthly ApexCharts for historical consumption analysis.
+- **Cost Analysis**: Today, week, and month costs calculated as `energy_kwh × tariff_rate`, with configurable currency.
+- **Historical Reporting**: Detailed consumption reports including peak power demand and fault counts per period.
+- **Report Pagination**: The on-screen Energy Report displays 25 rows per page while exports include the entire filtered report.
+- **Report Exports**: Authenticated CSV and PDF downloads that respect active date-range filters.
+- **Energy Settings**: Separate Settings page for editing tariff rate, ISO currency code, and tariff description.
+- **Live Summary Aggregation**: Every accepted telemetry reading updates daily and month-to-date consumption from the cumulative sensor meter.
+- **Automatic Refresh**: The Energy Analytics page refreshes data every 10 seconds while it is open.
+- **Historical Rebuild**: `php artisan energy:rebuild-summaries` reconstructs summaries from stored telemetry after deployment or data repair.
+- **Integrated Sidebar**: "Energy Analytics" module with dedicated navigation and Zap iconography.
+
 ## API Documentation
 
 ### SmartGuard Telemetry APIs
@@ -82,10 +96,38 @@ Requires Sanctum authentication.
 | `GET` | `/api/v1/fault-settings` | List protection limits |
 | `PUT` | `/api/v1/fault-settings/{id}` | Update protection limit |
 
+### Energy Analytics APIs
+Requires Sanctum authentication.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/energy/summary` | Today/Weekly/Monthly summary |
+| `GET` | `/api/v1/energy/daily` | Last 30 days daily usage |
+| `GET` | `/api/v1/energy/weekly` | Last 12 weeks usage |
+| `GET` | `/api/v1/energy/monthly` | Last 12 months usage |
+| `GET` | `/api/v1/energy/report` | Detailed consumption report |
+| `GET` | `/api/v1/energy/export/csv` | Download filtered report as CSV |
+| `GET` | `/api/v1/energy/export/pdf` | Download filtered report as PDF |
+| `GET` | `/api/v1/energy/settings` | Get current tariff settings |
+| `PUT` | `/api/v1/energy/settings` | Update tariff settings |
+
+Energy analytics endpoints accept optional `start_date` and `end_date` query parameters in `YYYY-MM-DD` format. The Energy Settings UI is available at `/settings/energy`.
+
+## Energy Analytics Deployment
+
+After deploying the Energy Analytics changes, run:
+
+```bash
+php artisan migrate --force
+php artisan energy:rebuild-summaries
+```
+
+The migration adds the energy settings schema and enforces one summary per device per day. The rebuild command is required once to generate daily and monthly summaries from telemetry already stored in `device_readings`. After rebuilding, each new sensor telemetry request updates `energy_summaries` automatically.
+
 ## Testing
 
 Run tests with:
 ```bash
 php artisan test
 ```
-Current coverage includes schema validation, telemetry ingestion logic, and dashboard data integrity.
+Current coverage includes schema validation, telemetry ingestion, dashboard data integrity, energy cost calculations, date filtering, report exports, and tariff settings.
