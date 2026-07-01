@@ -1,10 +1,10 @@
 <?php
 
+use App\Models\Device;
 use App\Models\FaultSetting;
 use App\Models\User;
-use App\Models\Device;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Database\Seeders\FaultSettingSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 
 uses(RefreshDatabase::class);
@@ -25,15 +25,15 @@ test('can retrieve fault settings', function () {
     $response = $this->getJson('/api/v1/fault-settings');
 
     $response->assertStatus(200)
-             ->assertJsonCount(5, 'data');
+        ->assertJsonCount(5, 'data');
 });
 
 test('can update fault setting', function () {
     $setting = FaultSetting::where('fault_code', 'OVERVOLTAGE')->first();
 
     $payload = [
-        'max_value' => 260,
-        'enabled' => true
+        'max_value' => 255,
+        'enabled' => true,
     ];
 
     $response = $this->putJson("/api/v1/fault-settings/{$setting->id}", $payload);
@@ -41,8 +41,18 @@ test('can update fault setting', function () {
     $response->assertStatus(200);
     $this->assertDatabaseHas('fault_settings', [
         'id' => $setting->id,
-        'max_value' => 260
+        'max_value' => 255,
     ]);
+});
+
+test('unsafe hardware threshold update is rejected', function () {
+    $setting = FaultSetting::where('fault_code', 'OVERVOLTAGE')->first();
+
+    $response = $this->putJson("/api/v1/fault-settings/{$setting->id}", [
+        'max_value' => 260,
+    ]);
+
+    $response->assertStatus(422);
 });
 
 test('telemetry detects overvoltage based on database setting', function () {
@@ -63,12 +73,12 @@ test('telemetry detects overvoltage based on database setting', function () {
     ];
 
     $this->postJson('/api/v1/smartguard/telemetry', $payload, [
-        'X-SmartGuard-Token' => 'test-token-123'
+        'X-SmartGuard-Token' => 'test-token-123',
     ]);
 
     $this->assertDatabaseHas('faults', [
         'fault_type' => 'OVERVOLTAGE SURGE',
-        'resolved_at' => null
+        'resolved_at' => null,
     ]);
 });
 
@@ -90,12 +100,12 @@ test('telemetry detects undervoltage based on database setting', function () {
     ];
 
     $this->postJson('/api/v1/smartguard/telemetry', $payload, [
-        'X-SmartGuard-Token' => 'test-token-123'
+        'X-SmartGuard-Token' => 'test-token-123',
     ]);
 
     $this->assertDatabaseHas('faults', [
         'fault_type' => 'UNDERVOLTAGE BROWNOUT',
-        'resolved_at' => null
+        'resolved_at' => null,
     ]);
 });
 
@@ -117,12 +127,12 @@ test('telemetry detects overcurrent based on database setting', function () {
     ];
 
     $this->postJson('/api/v1/smartguard/telemetry', $payload, [
-        'X-SmartGuard-Token' => 'test-token-123'
+        'X-SmartGuard-Token' => 'test-token-123',
     ]);
 
     $this->assertDatabaseHas('faults', [
         'fault_type' => 'OVERCURRENT DETECTED',
-        'resolved_at' => null
+        'resolved_at' => null,
     ]);
 });
 
@@ -147,11 +157,11 @@ test('telemetry resolves faults when values return to normal', function () {
     ];
 
     $this->postJson('/api/v1/smartguard/telemetry', $payload, [
-        'X-SmartGuard-Token' => 'test-token-123'
+        'X-SmartGuard-Token' => 'test-token-123',
     ]);
 
     $this->assertDatabaseMissing('faults', [
         'fault_type' => 'OVERVOLTAGE SURGE',
-        'resolved_at' => null
+        'resolved_at' => null,
     ]);
 });

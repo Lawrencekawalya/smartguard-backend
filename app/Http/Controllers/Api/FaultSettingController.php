@@ -8,6 +8,7 @@ use App\Models\FaultSetting;
 use App\Services\FaultSettingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\ValidationException;
 
 class FaultSettingController extends Controller
 {
@@ -43,7 +44,30 @@ class FaultSettingController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        $this->validateHardwareSafeLimits($faultSetting, $validated);
+
         $setting = $this->faultSettingService->updateSetting($faultSetting, $validated);
+
         return new FaultSettingResource($setting);
+    }
+
+    private function validateHardwareSafeLimits(FaultSetting $setting, array $data): void
+    {
+        $minValue = (float) ($data['min_value'] ?? $setting->min_value);
+        $maxValue = (float) ($data['max_value'] ?? $setting->max_value);
+
+        $isInvalid = match ($setting->parameter) {
+            'voltage' => $minValue < 185 || $maxValue > 258 || $minValue >= $maxValue,
+            'current' => $maxValue < 0.1 || $maxValue > 5,
+            'power_factor' => $minValue < 0 || $minValue > 1,
+            'real_power', 'apparent_power' => $maxValue < 0 || $maxValue > 5000,
+            default => false,
+        };
+
+        if ($isInvalid) {
+            throw ValidationException::withMessages([
+                'max_value' => 'Threshold is outside the hardware-safe SmartGuard range.',
+            ]);
+        }
     }
 }

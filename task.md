@@ -402,19 +402,298 @@ Verification: [DONE]
 - Phase 6.3 feature tests cover summaries, reports, calculations, exports, validation, authentication, and settings.
 - Production frontend build completed successfully.
 
-Phase 7: Flutter Integration Readiness
+Phase 7: Flutter Integration & Persistent Fault Alarm System [PLANNED]
 
-The backend must expose clean REST endpoints for:
+Goal
 
-Login
-Device List
-Latest Telemetry
-Fault History
-Relay History
-Daily Usage
-Monthly Usage
+Prepare a stable, authenticated mobile API and a real-time fault notification
+pipeline for the Flutter application.
 
-Use Laravel Sanctum for API authentication.
+When SmartGuard opens a fault, the backend must send a push event with the
+shortest practical latency so the phone can start a prominent local alarm. The
+alarm remains active while at least one fault is unresolved and stops only after
+the backend confirms that all relevant faults have been resolved.
+
+Architecture Principle
+
+- Laravel is the source of truth for fault state.
+- Firebase Cloud Messaging (FCM) is the wake-up and event-delivery channel.
+- REST synchronization guarantees recovery from delayed, duplicated, missed,
+  or out-of-order push messages.
+- Flutter owns local alarm playback because a server push cannot continuously
+  play sound by itself.
+- Do not send notifications for every two-second telemetry reading. Send events
+  only when a fault opens, resolves, or requires a configured reminder.
+
+Task 7.1: Mobile Authentication with Laravel Sanctum
+
+Backend:
+
+- Add `HasApiTokens` to the `User` model.
+- Create mobile authentication endpoints:
+  - `POST /api/v1/mobile/auth/login`
+  - `GET /api/v1/mobile/auth/user`
+  - `POST /api/v1/mobile/auth/logout`
+  - `POST /api/v1/mobile/auth/logout-all`
+- Login accepts email, password, and a human-readable device name.
+- Return a Sanctum bearer token and authenticated user resource.
+- Protect every mobile endpoint with `auth:sanctum`.
+- Add login rate limiting, validation, token expiration policy, token rotation
+  guidance, and token revocation on logout.
+- Never expose `X-SmartGuard-Token` to the Flutter application; that credential
+  remains exclusive to trusted SmartGuard hardware.
+
+Task 7.2: Versioned Mobile REST API
+
+Create consistent JSON resources, pagination, validation, and ISO 8601 UTC
+timestamps for:
+
+- `GET /api/v1/mobile/devices`
+- `GET /api/v1/mobile/devices/{device}`
+- `GET /api/v1/mobile/devices/{device}/latest-telemetry`
+- `GET /api/v1/mobile/devices/{device}/faults`
+- `GET /api/v1/mobile/devices/{device}/relay-history`
+- `GET /api/v1/mobile/devices/{device}/energy/daily`
+- `GET /api/v1/mobile/devices/{device}/energy/monthly`
+- `GET /api/v1/mobile/dashboard`
+
+Requirements:
+
+- Reuse the existing service layer and API Resources where appropriate.
+- Add filters for fault status, date range, and pagination.
+- Include device online/offline state derived from `last_seen_at`.
+- Include unresolved fault count and current relay/fault state in device
+  summaries so the app can render the same information as the web dashboard.
+- Apply authorization policies so users can only access devices assigned to
+  them. Define the user-to-device assignment model before exposing production
+  mobile access.
+
+Task 7.3: Mobile Push Token Registration
+
+Create a `mobile_devices` table and model with:
+
+- `id`
+- `user_id`
+- `installation_id` (unique app-install identifier)
+- `fcm_token` (encrypted or otherwise protected at rest)
+- `fcm_token_hash` (unique lookup/deduplication value)
+- `platform` (`android` or `ios`)
+- `device_name`
+- `app_version` nullable
+- `notifications_enabled`
+- `last_seen_at`
+- timestamps
+
+Create endpoints:
+
+- `POST /api/v1/mobile/push-tokens` to register or refresh an installation.
+- `DELETE /api/v1/mobile/push-tokens/{installation_id}` on logout or explicit
+  deregistration.
+
+Requirements:
+
+- Upsert token records because FCM tokens can rotate.
+- Reassign a token safely when the authenticated installation changes account.
+- Remove or disable invalid tokens after a permanent FCM delivery failure.
+- Allow one user to register multiple phones.
+
+Task 7.4: Fault Domain Events
+
+Refactor fault lifecycle handling so state transitions produce explicit events:
+
+- `FaultDetected` when a new unresolved fault record is created.
+- `FaultResolved` when an unresolved fault receives `resolved_at`.
+
+Requirements:
+
+- Dispatch events only after the telemetry database transaction commits.
+- Never emit another `FaultDetected` event for an already-open matching fault.
+- Emit resolution events for every fault that actually changed state.
+- Include a unique event ID for idempotent mobile processing.
+- Keep telemetry ingestion fast; notification network calls must not run inside
+  `TelemetryService` or its database transaction.
+
+Task 7.5: Queued Firebase Cloud Messaging Delivery
+
+Implement an FCM HTTP v1 notification service and queued jobs:
+
+- `SendFaultDetectedNotification`
+- `SendFaultResolvedNotification`
+- Optional `SendUnresolvedFaultReminder`
+
+Use service-account credentials through environment configuration and never
+commit credentials to source control.
+
+Fault-open push payload:
+
+- `event_id`
+- `event_type = fault.opened`
+- `alarm_action = START`
+- `fault_id`
+- `fault_type`
+- `severity`
+- `device_id`
+- `device_code`
+- `device_name`
+- `occurred_at`
+
+Fault-resolved push payload:
+
+- `event_id`
+- `event_type = fault.resolved`
+- `alarm_action = SYNC`
+- `fault_id`
+- `device_id`
+- `device_code`
+- `resolved_at`
+
+Requirements:
+
+- Use high-priority Android delivery and the corresponding iOS alert settings.
+- Configure retry/backoff and structured delivery logging.
+- Make jobs idempotent to avoid duplicate notification records.
+- Store notification delivery attempts/status for audit and troubleshooting.
+- A resolution event uses `SYNC`, not an unconditional stop, because another
+  unresolved fault may still require the alarm.
+- Queue workers must be supervised in production.
+
+Task 7.6: Authoritative Active Alarm API
+
+Create:
+
+- `GET /api/v1/mobile/alarms/active`
+
+Response must include:
+
+- `alarm_active`
+- all unresolved faults accessible to the authenticated user
+- affected devices
+- highest severity
+- `server_time`
+- a monotonically increasing state version or last-change timestamp
+
+Optional acknowledgement endpoint:
+
+- `POST /api/v1/mobile/faults/{fault}/acknowledge`
+
+Acknowledgement records that a user saw the alert but does not resolve the fault
+and does not permanently stop the required alarm.
+
+Synchronization rules:
+
+- Flutter calls the active alarm endpoint after login, app launch, app resume,
+  push receipt, and network reconnection.
+- Flutter starts/continues the alarm when `alarm_active` is true.
+- Flutter stops the alarm only when a fresh authenticated response confirms
+  `alarm_active` is false.
+- The app must deduplicate events by `event_id` and tolerate out-of-order pushes.
+- Add a short foreground polling fallback while an alarm is active; FCM is not
+  treated as guaranteed delivery.
+
+Task 7.7: Flutter Persistent Alarm Behavior
+
+Flutter implementation requirements:
+
+- Use Firebase Messaging for foreground, background, and terminated-app push
+  handling.
+- Use local notifications with a dedicated high-importance fault alarm channel.
+- Display the device, fault type, occurrence time, current state, and a direct
+  action that opens the affected device/fault screen.
+- Maintain a local alarm state machine backed by the active alarm API.
+- In the foreground, loop the alarm audio until backend synchronization reports
+  no unresolved faults.
+- Persist enough state locally to restore the alarm UI after app restart.
+- Re-register the FCM token whenever Firebase rotates it.
+- Request notification/alarm permissions with a clear user-facing explanation.
+- Show an in-app warning when notifications, alarm permissions, battery policy,
+  or background delivery settings prevent reliable alerts.
+
+Android:
+
+- Create a maximum/high-importance notification channel with alarm audio,
+  vibration, lock-screen visibility, and an ongoing alarm notification.
+- Use an Android foreground service for continuous playback while the alarm is
+  active, subject to Android permission and device-policy requirements.
+- Consider full-screen alarm UI only for genuine critical faults and only where
+  Android permits it.
+- Stop the foreground service only after authoritative resolution
+  synchronization.
+
+iOS:
+
+- Implement normal APNs/FCM alerts and foreground alarm playback.
+- Apply for Apple's Critical Alerts entitlement if uninterrupted safety alerts
+  are a product requirement.
+- Document that iOS does not guarantee indefinite custom audio while the app is
+  backgrounded or terminated without the required entitlement/system support.
+- Use repeated unresolved-fault reminders and state reconciliation as the
+  fallback; do not claim that ordinary iOS notifications can ring forever.
+
+Task 7.8: Reliability, Escalation, and Recovery
+
+- Add a configurable reminder interval for unresolved critical faults.
+- Cancel future reminders when all relevant faults resolve.
+- On queue or FCM outage, retain retryable jobs and expose delivery failures in
+  logs/monitoring.
+- On app reconnection, recover current alarm state entirely from the REST API.
+- Handle multiple simultaneous faults without starting competing audio loops.
+- Handle one fault resolving while another remains open.
+- Define severity mapping and which fault types trigger audible alarms.
+- Define optional escalation channels such as SMS/email for future work; these
+  do not replace push plus REST synchronization.
+
+Task 7.9: Security and Privacy
+
+- Authorize users against assigned devices for REST data and push delivery.
+- Do not place secrets, raw telemetry history, or sensitive personal data in
+  push payloads.
+- Validate all device, fault, and installation identifiers.
+- Revoke mobile tokens and push registrations on logout/account disablement.
+- Rate limit authentication, token registration, and acknowledgement endpoints.
+- Audit token registration, fault delivery, acknowledgement, and resolution.
+
+Task 7.10: Tests and Acceptance Criteria
+
+Backend feature/unit tests:
+
+- Mobile login succeeds with valid credentials and fails safely otherwise.
+- Logout revokes the current Sanctum token.
+- Protected mobile endpoints reject unauthenticated requests.
+- Users cannot access or receive alerts for unassigned devices.
+- Push token registration is idempotent and handles token rotation.
+- One new fault creates exactly one `FaultDetected` event and queued push job.
+- Repeated fault telemetry does not create duplicate open-fault notifications.
+- Resolving a fault creates a resolution event only after commit.
+- FCM failures retry and permanent invalid-token failures disable the token.
+- Active alarm endpoint remains true until the final unresolved fault resolves.
+- Concurrent telemetry requests do not duplicate fault events.
+- Existing telemetry ingestion and dashboard tests continue to pass.
+
+Flutter acceptance tests:
+
+- Foreground fault starts the alarm and displays the correct fault.
+- Background/terminated push opens the critical local notification.
+- App launch with a missed push still starts the alarm after REST sync.
+- Duplicate/out-of-order events do not create duplicate alarms.
+- Resolving one of multiple faults does not stop the alarm.
+- Resolving the final fault stops playback and updates the UI.
+- Token refresh and logout correctly update backend registration.
+- Denied permissions produce a visible reliability warning.
+
+Completion Criteria
+
+- The Flutter app can display all existing dashboard data through
+  Sanctum-protected mobile endpoints.
+- A newly opened fault queues a push notification without delaying telemetry
+  ingestion.
+- Android can maintain a local audible alarm while a fault remains unresolved,
+  within granted OS permissions and device policy.
+- iOS behavior and Critical Alerts entitlement limitations are explicitly
+  documented and tested.
+- Missed push messages cannot leave the app in a permanently incorrect state
+  because startup/resume/reconnect synchronization restores backend truth.
+- The alarm stops only after the active alarm API confirms that no applicable
+  unresolved fault remains.
 
 Phase 8: Production Readiness
 

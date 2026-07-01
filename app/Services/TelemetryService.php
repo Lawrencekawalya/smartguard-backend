@@ -127,6 +127,8 @@ class TelemetryService
                 'power_factor' => $data['power_factor'],
                 'energy_kwh' => $data['energy_kwh'],
                 'relay_status' => (bool) $data['relay_status'],
+                'device_status' => $data['status'],
+                'fault_reason' => $data['fault_reason'],
                 'fault_status' => empty($detectedFaults) ? 'RUN' : ($data['status'] === 'TRIP' ? 'TRIP' : 'FAULT_DETECTED'),
                 'created_at' => now(),
             ]);

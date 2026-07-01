@@ -17,6 +17,8 @@ class DeviceReading extends Model
         'power_factor',
         'energy_kwh',
         'relay_status',
+        'device_status',
+        'fault_reason',
         'fault_status',
         'created_at',
     ];

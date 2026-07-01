@@ -1,15 +1,5 @@
 <script setup lang="ts">
 import { Head, usePage } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { dashboard } from '@/routes';
-import AppLayout from '@/layouts/AppLayout.vue';
-import StatusBanner from '@/components/SmartGuard/StatusBanner.vue';
-import MetricCard from '@/components/SmartGuard/MetricCard.vue';
-import FaultHistoryTable from '@/components/SmartGuard/FaultHistoryTable.vue';
-import RelayHistoryTable from '@/components/SmartGuard/RelayHistoryTable.vue';
-import VoltageTrendChart from '@/components/SmartGuard/VoltageTrendChart.vue';
-import CurrentTrendChart from '@/components/SmartGuard/CurrentTrendChart.vue';
-import PowerTrendChart from '@/components/SmartGuard/PowerTrendChart.vue';
 import { 
     Zap, 
     Activity, 
@@ -20,6 +10,15 @@ import {
     Battery, 
     Clock 
 } from '@lucide/vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import CurrentTrendChart from '@/components/SmartGuard/CurrentTrendChart.vue';
+import FaultHistoryTable from '@/components/SmartGuard/FaultHistoryTable.vue';
+import MetricCard from '@/components/SmartGuard/MetricCard.vue';
+import PowerTrendChart from '@/components/SmartGuard/PowerTrendChart.vue';
+import RelayHistoryTable from '@/components/SmartGuard/RelayHistoryTable.vue';
+import StatusBanner from '@/components/SmartGuard/StatusBanner.vue';
+import VoltageTrendChart from '@/components/SmartGuard/VoltageTrendChart.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 
 defineOptions({
     layout: AppLayout,
@@ -141,7 +140,7 @@ onUnmounted(() => {
             <!-- Status Banner -->
             <StatusBanner 
                 :status="statusData?.status" 
-                :fault-reason="statusData?.fault_status !== 'RUN' ? statusData?.fault_status : ''" 
+                :fault-reason="statusData?.status !== 'RUN' && statusData?.status !== 'OFFLINE' ? statusData?.fault_status : ''" 
             />
 
             <!-- Metric Cards Grid -->

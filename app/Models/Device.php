@@ -14,10 +14,16 @@ class Device extends Model
         'firmware_version',
         'ip_address',
         'last_seen_at',
+        'threshold_config_version',
+        'threshold_config_ack_version',
+        'threshold_config_status',
+        'threshold_config_error',
+        'threshold_config_synced_at',
     ];
 
     protected $casts = [
         'last_seen_at' => 'datetime',
+        'threshold_config_synced_at' => 'datetime',
     ];
 
     public function readings()

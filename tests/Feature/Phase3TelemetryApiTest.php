@@ -1,9 +1,6 @@
 <?php
 
 use App\Models\Device;
-use App\Models\DeviceReading;
-use App\Models\Fault;
-use App\Models\RelayLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 
@@ -20,7 +17,7 @@ test('unauthorized request fails', function () {
 
 test('validation failure returns 422', function () {
     $response = $this->postJson('/api/v1/smartguard/telemetry', [], [
-        'X-SmartGuard-Token' => 'test-token-123'
+        'X-SmartGuard-Token' => 'test-token-123',
     ]);
     $response->assertStatus(422);
 });
@@ -40,7 +37,7 @@ test('device auto creation on first telemetry', function () {
     ];
 
     $response = $this->postJson('/api/v1/smartguard/telemetry', $payload, [
-        'X-SmartGuard-Token' => 'test-token-123'
+        'X-SmartGuard-Token' => 'test-token-123',
     ]);
 
     $response->assertStatus(201);
@@ -62,19 +59,21 @@ test('telemetry storage', function () {
     ];
 
     $response = $this->postJson('/api/v1/smartguard/telemetry', $payload, [
-        'X-SmartGuard-Token' => 'test-token-123'
+        'X-SmartGuard-Token' => 'test-token-123',
     ]);
 
     $response->assertStatus(201);
     $this->assertDatabaseHas('device_readings', [
         'voltage' => 238.6,
         'current' => 5.231,
+        'device_status' => 'RUN',
+        'fault_reason' => 'NONE',
     ]);
 });
 
 test('relay transition logging', function () {
     $device = Device::create(['device_code' => 'SmartGuard-MTR-001', 'device_name' => 'Unit 1']);
-    
+
     // First reading (Relay ON)
     $this->postJson('/api/v1/smartguard/telemetry', [
         'device_code' => 'SmartGuard-MTR-001',
@@ -106,7 +105,7 @@ test('relay transition logging', function () {
     $this->assertDatabaseHas('relay_logs', [
         'device_id' => $device->id,
         'action' => 'AUTO_TRIP',
-        'triggered_by' => 'HARDWARE_ENGINE'
+        'triggered_by' => 'HARDWARE_ENGINE',
     ]);
 });
 
@@ -125,12 +124,12 @@ test('fault creation on TRIP', function () {
     ];
 
     $this->postJson('/api/v1/smartguard/telemetry', $payload, [
-        'X-SmartGuard-Token' => 'test-token-123'
+        'X-SmartGuard-Token' => 'test-token-123',
     ]);
 
     $this->assertDatabaseHas('faults', [
         'fault_type' => 'OVERVOLTAGE',
-        'resolved_at' => null
+        'resolved_at' => null,
     ]);
 });
 
@@ -155,12 +154,12 @@ test('fault resolution on RUN', function () {
     ];
 
     $this->postJson('/api/v1/smartguard/telemetry', $payload, [
-        'X-SmartGuard-Token' => 'test-token-123'
+        'X-SmartGuard-Token' => 'test-token-123',
     ]);
 
     $this->assertDatabaseMissing('faults', [
         'id' => $fault->id,
-        'resolved_at' => null
+        'resolved_at' => null,
     ]);
 });
 
@@ -179,9 +178,9 @@ test('latest telemetry endpoint returns correct data', function () {
     ]);
 
     $response = $this->getJson('/api/v1/smartguard/telemetry/latest?device_code=SmartGuard-MTR-001', [
-        'X-SmartGuard-Token' => 'test-token-123'
+        'X-SmartGuard-Token' => 'test-token-123',
     ]);
 
     $response->assertStatus(200)
-             ->assertJsonPath('data.voltage', 230.5);
+        ->assertJsonPath('data.voltage', 230.5);
 });

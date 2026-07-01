@@ -21,6 +21,11 @@ class DeviceResource extends JsonResource
             'firmware_version' => $this->firmware_version,
             'ip_address' => $this->ip_address,
             'last_seen_at' => $this->last_seen_at?->toIso8601String(),
+            'threshold_config_version' => $this->threshold_config_version,
+            'threshold_config_ack_version' => $this->threshold_config_ack_version,
+            'threshold_config_status' => $this->threshold_config_status,
+            'threshold_config_error' => $this->threshold_config_error,
+            'threshold_config_synced_at' => $this->threshold_config_synced_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

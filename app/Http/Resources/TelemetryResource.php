@@ -25,6 +25,8 @@ class TelemetryResource extends JsonResource
             'power_factor' => (float) $this->power_factor,
             'energy_kwh' => (float) $this->energy_kwh,
             'relay_status' => (bool) $this->relay_status,
+            'device_status' => $this->device_status,
+            'fault_reason' => $this->fault_reason,
             'fault_status' => $this->fault_status,
             'created_at' => $this->created_at,
         ];
