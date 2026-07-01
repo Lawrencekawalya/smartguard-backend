@@ -26,12 +26,12 @@ class DashboardController extends Controller
     public function status(Request $request)
     {
         $deviceCode = $this->getDeviceCode($request);
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 
         $device = $this->dashboardService->getStatus($deviceCode);
-        if (!$device) {
+        if (! $device) {
             return response()->json(['message' => 'Device not found'], Response::HTTP_NOT_FOUND);
         }
 
@@ -41,12 +41,12 @@ class DashboardController extends Controller
     public function latestReading(Request $request)
     {
         $deviceCode = $this->getDeviceCode($request);
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 
         $reading = $this->dashboardService->getLatestReading($deviceCode);
-        if (!$reading) {
+        if (! $reading) {
             return response()->json(['message' => 'No readings found'], Response::HTTP_NOT_FOUND);
         }
 
@@ -56,12 +56,12 @@ class DashboardController extends Controller
     public function latestFault(Request $request)
     {
         $deviceCode = $this->getDeviceCode($request);
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 
         $fault = $this->dashboardService->getLatestFault($deviceCode);
-        if (!$fault) {
+        if (! $fault) {
             return response()->json(['message' => 'No faults found'], Response::HTTP_NOT_FOUND);
         }
 
@@ -71,7 +71,7 @@ class DashboardController extends Controller
     public function faultHistory(Request $request)
     {
         $deviceCode = $this->getDeviceCode($request);
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -84,7 +84,7 @@ class DashboardController extends Controller
     public function relayHistory(Request $request)
     {
         $deviceCode = $this->getDeviceCode($request);
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -97,7 +97,7 @@ class DashboardController extends Controller
     public function dailyUsage(Request $request)
     {
         $deviceCode = $this->getDeviceCode($request);
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -109,7 +109,7 @@ class DashboardController extends Controller
     public function monthlyUsage(Request $request)
     {
         $deviceCode = $this->getDeviceCode($request);
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -121,7 +121,7 @@ class DashboardController extends Controller
     public function voltageTrend(Request $request)
     {
         $deviceCode = $this->getDeviceCode($request);
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -133,7 +133,7 @@ class DashboardController extends Controller
     public function currentTrend(Request $request)
     {
         $deviceCode = $this->getDeviceCode($request);
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -145,7 +145,7 @@ class DashboardController extends Controller
     public function powerTrend(Request $request)
     {
         $deviceCode = $this->getDeviceCode($request);
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 

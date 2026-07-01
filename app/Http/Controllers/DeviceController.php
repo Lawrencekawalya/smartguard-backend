@@ -25,8 +25,8 @@ class DeviceController extends Controller
         if ($request->has('search')) {
             $search = $request->get('search');
             $query->where('device_name', 'like', "%{$search}%")
-                  ->orWhere('device_code', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
+                ->orWhere('device_code', 'like', "%{$search}%")
+                ->orWhere('location', 'like', "%{$search}%");
         }
 
         $devices = $query->latest()->paginate(10)->withQueryString();

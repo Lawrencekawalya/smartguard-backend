@@ -33,13 +33,13 @@ class TelemetryController extends Controller
     public function latest(Request $request)
     {
         $deviceCode = $request->query('device_code');
-        if (!$deviceCode) {
+        if (! $deviceCode) {
             return response()->json(['message' => 'Device code is required'], Response::HTTP_BAD_REQUEST);
         }
 
         $reading = $this->telemetryService->getLatestTelemetry($deviceCode);
 
-        if (!$reading) {
+        if (! $reading) {
             return response()->json(['message' => 'No telemetry found for this device'], Response::HTTP_NOT_FOUND);
         }
 

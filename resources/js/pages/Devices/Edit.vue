@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import { ChevronLeft, Save } from '@lucide/vue';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
+import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import InputError from '@/components/InputError.vue';
-import { ChevronLeft, Save } from '@lucide/vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 
 interface Device {
     id: number;
@@ -52,7 +58,7 @@ const submit = () => {
 <template>
     <Head :title="'Edit ' + device.device_name" />
 
-    <div class="flex flex-1 flex-col gap-6 p-6 max-w-2xl mx-auto w-full">
+    <div class="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6">
         <div class="flex items-center gap-4">
             <Button variant="outline" size="icon" as-child>
                 <Link href="/devices">
@@ -61,14 +67,19 @@ const submit = () => {
             </Button>
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Edit Device</h1>
-                <p class="text-muted-foreground">Update configuration for {{ device.device_name }}.</p>
+                <p class="text-muted-foreground">
+                    Update configuration for {{ device.device_name }}.
+                </p>
             </div>
         </div>
 
         <Card>
             <CardHeader>
                 <CardTitle>Device Information</CardTitle>
-                <CardDescription>Modify the details for this SmartGuard device.</CardDescription>
+                <CardDescription
+                    >Modify the details for this SmartGuard
+                    device.</CardDescription
+                >
             </CardHeader>
             <CardContent>
                 <form @submit.prevent="submit" class="space-y-6">
@@ -91,7 +102,9 @@ const submit = () => {
                             placeholder="e.g. SmartGuard-MTR-001"
                             required
                         />
-                        <p class="text-[10px] text-muted-foreground italic">Must be unique and match the firmware configuration.</p>
+                        <p class="text-[10px] text-muted-foreground italic">
+                            Must be unique and match the firmware configuration.
+                        </p>
                         <InputError :message="form.errors.device_code" />
                     </div>
 
@@ -105,29 +118,42 @@ const submit = () => {
                         <InputError :message="form.errors.location" />
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div class="space-y-2">
                             <Label for="status">Status</Label>
-                            <Select :model-value="form.status" @update:model-value="form.status = $event">
+                            <Select
+                                :model-value="form.status"
+                                @update:model-value="
+                                    form.status = String($event)
+                                "
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="inactive">Inactive</SelectItem>
+                                    <SelectItem value="active"
+                                        >Active</SelectItem
+                                    >
+                                    <SelectItem value="inactive"
+                                        >Inactive</SelectItem
+                                    >
                                 </SelectContent>
                             </Select>
                             <InputError :message="form.errors.status" />
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="firmware_version">Firmware Version (Optional)</Label>
+                            <Label for="firmware_version"
+                                >Firmware Version (Optional)</Label
+                            >
                             <Input
                                 id="firmware_version"
                                 v-model="form.firmware_version"
                                 placeholder="e.g. v1.0.4"
                             />
-                            <InputError :message="form.errors.firmware_version" />
+                            <InputError
+                                :message="form.errors.firmware_version"
+                            />
                         </div>
                     </div>
 

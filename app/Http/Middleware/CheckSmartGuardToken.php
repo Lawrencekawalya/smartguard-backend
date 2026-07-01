@@ -16,8 +16,8 @@ class CheckSmartGuardToken
     public function handle(Request $request, Closure $next): Response
     {
         $token = $request->header('X-SmartGuard-Token');
-        
-        if (!$token || $token !== config('services.smartguard.api_token')) {
+
+        if (! $token || $token !== config('services.smartguard.api_token')) {
             return response()->json(['message' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
         }
 

@@ -37,6 +37,7 @@ class DeviceService
     public function updateDevice(Device $device, array $data): Device
     {
         $device->update($data);
+
         return $device;
     }
 

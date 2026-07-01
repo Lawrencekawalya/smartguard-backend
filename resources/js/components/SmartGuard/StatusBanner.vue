@@ -22,15 +22,19 @@ const bannerClass = computed(() => {
 </script>
 
 <template>
-    <div :class="['rounded-xl border p-4 font-bold text-center tracking-wider transition-colors', bannerClass]">
-        <template v-if="isStable">
-            SYSTEM STABLE / LOAD ONLINE
-        </template>
+    <div
+        :class="[
+            'rounded-xl border p-4 text-center font-bold tracking-wider transition-colors',
+            bannerClass,
+        ]"
+    >
+        <template v-if="isStable"> SYSTEM STABLE / LOAD ONLINE </template>
         <template v-else-if="isOffline">
             DEVICE OFFLINE / AWAITING TELEMETRY
         </template>
         <template v-else>
-            CRITICAL ALERT: {{ faultReason || 'UNKNOWN FAULT' }} UNRESOLVED - LOAD ISOLATED
+            CRITICAL ALERT: {{ faultReason || 'UNKNOWN FAULT' }} UNRESOLVED -
+            LOAD ISOLATED
         </template>
     </div>
 </template>

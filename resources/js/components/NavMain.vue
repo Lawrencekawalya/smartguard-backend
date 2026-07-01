@@ -10,7 +10,7 @@ import {
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import type { NavItem } from '@/types';
 
-const props = defineProps<{
+defineProps<{
     items: NavItem[];
 }>();
 

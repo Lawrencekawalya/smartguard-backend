@@ -1,10 +1,6 @@
 <?php
 
 use App\Models\Device;
-use App\Models\DeviceReading;
-use App\Models\Fault;
-use App\Models\RelayLog;
-use App\Models\EnergySummary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

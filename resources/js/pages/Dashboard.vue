@@ -187,7 +187,7 @@ onUnmounted(() => {
                 </h3>
                 <p class="mt-1 text-muted-foreground">{{ error }}</p>
                 <button
-                    @click="fetchData"
+                    @click="fetchLiveData(true)"
                     class="mt-4 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
                 >
                     Retry Connection

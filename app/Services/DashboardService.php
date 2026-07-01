@@ -5,8 +5,6 @@ namespace App\Services;
 use App\Models\Device;
 use App\Models\DeviceReading;
 use App\Models\Fault;
-use App\Models\RelayLog;
-use App\Models\EnergySummary;
 use Illuminate\Support\Collection;
 
 class DashboardService
@@ -25,6 +23,7 @@ class DashboardService
     public function getLatestReading(string $deviceCode): ?DeviceReading
     {
         $device = Device::where('device_code', $deviceCode)->first();
+
         return $device ? $device->readings()->latest('id')->first() : null;
     }
 
@@ -34,6 +33,7 @@ class DashboardService
     public function getLatestFault(string $deviceCode): ?Fault
     {
         $device = Device::where('device_code', $deviceCode)->first();
+
         return $device ? $device->faults()->latest('id')->first() : null;
     }
 
@@ -43,6 +43,7 @@ class DashboardService
     public function getFaultHistory(string $deviceCode, int $limit = 20): Collection
     {
         $device = Device::where('device_code', $deviceCode)->first();
+
         return $device ? $device->faults()->latest('id')->limit($limit)->get() : collect();
     }
 
@@ -52,6 +53,7 @@ class DashboardService
     public function getRelayHistory(string $deviceCode, int $limit = 20): Collection
     {
         $device = Device::where('device_code', $deviceCode)->first();
+
         return $device ? $device->relayLogs()->latest('id')->limit($limit)->get() : collect();
     }
 
@@ -61,6 +63,7 @@ class DashboardService
     public function getDailyUsage(string $deviceCode): Collection
     {
         $device = Device::where('device_code', $deviceCode)->first();
+
         return $device ? $device->energySummaries()
             ->select('summary_date as date', 'daily_kwh')
             ->orderBy('summary_date', 'desc')
@@ -74,10 +77,12 @@ class DashboardService
     public function getMonthlyUsage(string $deviceCode): Collection
     {
         $device = Device::where('device_code', $deviceCode)->first();
-        if (!$device) return collect();
+        if (! $device) {
+            return collect();
+        }
 
-        $format = config('database.default') === 'sqlite' 
-            ? "strftime('%Y-%m', summary_date)" 
+        $format = config('database.default') === 'sqlite'
+            ? "strftime('%Y-%m', summary_date)"
             : "DATE_FORMAT(summary_date, '%Y-%m')";
 
         return $device->energySummaries()
@@ -91,16 +96,18 @@ class DashboardService
     public function getVoltageTrend(string $deviceCode, int $limit = 50): Collection
     {
         $device = Device::where('device_code', $deviceCode)->first();
-        if (!$device) return collect();
+        if (! $device) {
+            return collect();
+        }
 
         return $device->readings()
             ->latest('id')
             ->limit($limit)
             ->get()
             ->reverse()
-            ->map(fn($r) => [
+            ->map(fn ($r) => [
                 'time' => $r->created_at->format('H:i:s'),
-                'value' => (float) $r->voltage
+                'value' => (float) $r->voltage,
             ])
             ->values();
     }
@@ -108,16 +115,18 @@ class DashboardService
     public function getCurrentTrend(string $deviceCode, int $limit = 50): Collection
     {
         $device = Device::where('device_code', $deviceCode)->first();
-        if (!$device) return collect();
+        if (! $device) {
+            return collect();
+        }
 
         return $device->readings()
             ->latest('id')
             ->limit($limit)
             ->get()
             ->reverse()
-            ->map(fn($r) => [
+            ->map(fn ($r) => [
                 'time' => $r->created_at->format('H:i:s'),
-                'value' => (float) $r->current
+                'value' => (float) $r->current,
             ])
             ->values();
     }
@@ -125,16 +134,18 @@ class DashboardService
     public function getPowerTrend(string $deviceCode, int $limit = 50): Collection
     {
         $device = Device::where('device_code', $deviceCode)->first();
-        if (!$device) return collect();
+        if (! $device) {
+            return collect();
+        }
 
         return $device->readings()
             ->latest('id')
             ->limit($limit)
             ->get()
             ->reverse()
-            ->map(fn($r) => [
+            ->map(fn ($r) => [
                 'time' => $r->created_at->format('H:i:s'),
-                'value' => (float) $r->real_power
+                'value' => (float) $r->real_power,
             ])
             ->values();
     }

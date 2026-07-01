@@ -31,6 +31,7 @@ class DeviceController extends Controller
     public function store(StoreDeviceRequest $request): DeviceResource
     {
         $device = $this->deviceService->createDevice($request->validated());
+
         return new DeviceResource($device);
     }
 
@@ -48,6 +49,7 @@ class DeviceController extends Controller
     public function update(UpdateDeviceRequest $request, Device $device): DeviceResource
     {
         $device = $this->deviceService->updateDevice($device, $request->validated());
+
         return new DeviceResource($device);
     }
 
@@ -57,6 +59,7 @@ class DeviceController extends Controller
     public function destroy(Device $device): Response
     {
         $this->deviceService->deleteDevice($device);
+
         return response()->noContent();
     }
 
@@ -66,6 +69,7 @@ class DeviceController extends Controller
     public function latestReading(Device $device)
     {
         $reading = $device->readings()->latest('id')->first();
+
         return $reading ? response()->json($reading) : response()->json(['message' => 'No readings found'], Response::HTTP_NOT_FOUND);
     }
 
