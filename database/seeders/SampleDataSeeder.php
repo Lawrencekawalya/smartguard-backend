@@ -26,15 +26,17 @@ class SampleDataSeeder extends Seeder
         );
 
         // 2. Create a main device
-        $device = Device::create([
-            'device_name' => 'Main SmartGuard Unit',
-            'device_code' => 'SmartGuard-MTR-001',
-            'location' => 'Main Distribution Board',
-            'status' => 'active',
-            'firmware_version' => '1.0.4',
-            'ip_address' => '192.168.1.50',
-            'last_seen_at' => now(),
-        ]);
+        $device = Device::updateOrCreate(
+            ['device_code' => 'SmartGuard-MTR-001'],
+            [
+                'device_name' => 'Main SmartGuard Unit',
+                'location' => 'Main Distribution Board',
+                'status' => 'active',
+                'firmware_version' => '1.0.4',
+                'ip_address' => '192.168.1.50',
+                'last_seen_at' => now(),
+            ],
+        );
 
         // 3. Generate data for the last 30 days
         $start = Carbon::now()->subDays(30);
