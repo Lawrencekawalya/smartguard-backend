@@ -67,7 +67,7 @@ class ThresholdConfigController extends Controller
         $validated = $request->validate([
             'device_code' => 'required|string',
             'version' => 'required|integer|min:0',
-            'max_current' => 'required|numeric|min:0|max:5',
+            'max_current' => 'required|numeric|min:0|max:20',
             'min_voltage' => 'required|numeric|min:0|max:258',
             'max_voltage' => 'required|numeric|min:0|max:258',
             'min_power_factor' => 'required|numeric|min:0|max:1',

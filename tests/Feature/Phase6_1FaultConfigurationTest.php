@@ -45,6 +45,21 @@ test('can update fault setting', function () {
     ]);
 });
 
+test('can update current threshold up to twenty amps', function () {
+    $setting = FaultSetting::where('fault_code', 'OVERCURRENT')->first();
+
+    $response = $this->putJson("/api/v1/fault-settings/{$setting->id}", [
+        'max_value' => 20,
+        'enabled' => true,
+    ]);
+
+    $response->assertStatus(200);
+    $this->assertDatabaseHas('fault_settings', [
+        'id' => $setting->id,
+        'max_value' => 20,
+    ]);
+});
+
 test('unsafe hardware threshold update is rejected', function () {
     $setting = FaultSetting::where('fault_code', 'OVERVOLTAGE')->first();
 

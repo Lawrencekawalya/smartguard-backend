@@ -10,9 +10,18 @@ class ThresholdConfigService
 {
     public function getVersion(): int
     {
-        $latestUpdatedAt = FaultSetting::query()->max('updated_at');
+        $snapshot = FaultSetting::query()
+            ->orderBy('parameter')
+            ->get(['parameter', 'min_value', 'max_value', 'enabled'])
+            ->map(fn (FaultSetting $setting): string => implode(':', [
+                $setting->parameter,
+                (float) $setting->min_value,
+                (float) $setting->max_value,
+                (int) $setting->enabled,
+            ]))
+            ->implode('|');
 
-        return $latestUpdatedAt ? strtotime((string) $latestUpdatedAt) : 1;
+        return max(1, (int) sprintf('%u', crc32($snapshot)));
     }
 
     /**
@@ -59,10 +68,13 @@ class ThresholdConfigService
 
     public function recordAck(Device $device, int $version, string $status, ?string $message = null): Device
     {
+        $currentThresholds = $this->getThresholds();
+        $isCurrentAck = $status === 'ACK' && $version === $currentThresholds['version'];
+
         $device->update([
             'threshold_config_ack_version' => $status === 'ACK' ? $version : $device->threshold_config_ack_version,
-            'threshold_config_ack_payload' => $status === 'ACK' ? $this->getThresholds() : $device->threshold_config_ack_payload,
-            'threshold_config_status' => $status === 'ACK' ? 'synced' : 'failed',
+            'threshold_config_ack_payload' => $isCurrentAck ? $currentThresholds : $device->threshold_config_ack_payload,
+            'threshold_config_status' => $status === 'ACK' ? ($isCurrentAck ? 'synced' : 'pending') : 'failed',
             'threshold_config_error' => $status === 'ACK' ? null : $message,
             'threshold_config_synced_at' => now(),
         ]);
