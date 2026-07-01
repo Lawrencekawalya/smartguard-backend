@@ -7,6 +7,15 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreTelemetryRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('energy_kwh') && is_numeric($this->input('energy_kwh'))) {
+            $this->merge([
+                'energy_kwh' => max(0, (float) $this->input('energy_kwh')),
+            ]);
+        }
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */

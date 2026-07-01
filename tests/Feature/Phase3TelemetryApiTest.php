@@ -133,6 +133,37 @@ test('fault creation on TRIP', function () {
     ]);
 });
 
+test('trip telemetry with negative cumulative energy is accepted and creates fault', function () {
+    $payload = [
+        'device_code' => 'SmartGuard-MTR-001',
+        'status' => 'TRIP',
+        'fault_reason' => 'OVERCURRENT DETECTED',
+        'voltage' => 234.5,
+        'current' => 16.881,
+        'real_power' => -899.4,
+        'apparent_power' => 3958.7,
+        'power_factor' => -0.23,
+        'energy_kwh' => -0.000250,
+        'relay_status' => 0,
+    ];
+
+    $response = $this->postJson('/api/v1/smartguard/telemetry', $payload, [
+        'X-SmartGuard-Token' => 'test-token-123',
+    ]);
+
+    $response->assertStatus(201);
+    $this->assertDatabaseHas('faults', [
+        'fault_type' => 'OVERCURRENT DETECTED',
+        'resolved_at' => null,
+    ]);
+    $this->assertDatabaseHas('device_readings', [
+        'device_status' => 'TRIP',
+        'fault_reason' => 'OVERCURRENT DETECTED',
+        'energy_kwh' => 0,
+        'fault_status' => 'TRIP',
+    ]);
+});
+
 test('fault resolution on RUN', function () {
     $device = Device::create(['device_code' => 'SmartGuard-MTR-001', 'device_name' => 'Unit 1']);
     $fault = $device->faults()->create([

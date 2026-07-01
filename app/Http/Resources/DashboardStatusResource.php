@@ -19,10 +19,12 @@ class DashboardStatusResource extends JsonResource
         $isOnline = $this->last_seen_at !== null
             && $this->last_seen_at->greaterThanOrEqualTo(now()->subSeconds($offlineAfterSeconds));
         $faultStatus = $latestReading?->fault_status ?? 'UNKNOWN';
+        $latestReadingHasFault = $latestReading?->fault_status
+            && $latestReading->fault_status !== 'RUN';
 
         return [
             'device_code' => $this->device_code,
-            'status' => $isOnline ? $faultStatus : 'OFFLINE',
+            'status' => $latestReadingHasFault ? $faultStatus : ($isOnline ? $faultStatus : 'OFFLINE'),
             'is_online' => $isOnline,
             'relay_status' => $isOnline && (bool) ($latestReading?->relay_status ?? false),
             'fault_status' => $faultStatus,

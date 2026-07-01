@@ -51,43 +51,47 @@ class TelemetryService
 
             // 4. Backend Threshold Validation & Fault Lifecycle Management
             $detectedFaults = [];
+            $isResetRecoveryPacket = $data['status'] === 'RUN' && $data['fault_reason'] === 'RESET_SUCCESS';
 
             if ($data['status'] === 'TRIP') {
                 $detectedFaults[] = $data['fault_reason'];
             }
 
-            // Check database-driven thresholds
-            $settings = FaultSetting::where('enabled', true)->get();
+            // Reset recovery packets are control/status acknowledgements, not electrical samples.
+            if (! $isResetRecoveryPacket) {
+                // Check database-driven thresholds
+                $settings = FaultSetting::where('enabled', true)->get();
 
-            foreach ($settings as $setting) {
-                switch ($setting->parameter) {
-                    case 'voltage':
-                        if ($data['voltage'] > $setting->max_value) {
-                            $detectedFaults[] = 'OVERVOLTAGE SURGE';
-                        } elseif ($data['voltage'] < $setting->min_value) {
-                            $detectedFaults[] = 'UNDERVOLTAGE BROWNOUT';
-                        }
-                        break;
-                    case 'current':
-                        if ($data['current'] > $setting->max_value) {
-                            $detectedFaults[] = 'OVERCURRENT DETECTED';
-                        }
-                        break;
-                    case 'power_factor':
-                        if ($setting->min_value > 0 && $data['power_factor'] < $setting->min_value) {
-                            $detectedFaults[] = 'LOW_POWER_FACTOR';
-                        }
-                        break;
-                    case 'real_power':
-                        if ($setting->max_value > 0 && $data['real_power'] > $setting->max_value) {
-                            $detectedFaults[] = 'OVERLOAD';
-                        }
-                        break;
-                    case 'apparent_power':
-                        if ($setting->max_value > 0 && $data['apparent_power'] > $setting->max_value) {
-                            $detectedFaults[] = 'OVERAPPARENT';
-                        }
-                        break;
+                foreach ($settings as $setting) {
+                    switch ($setting->parameter) {
+                        case 'voltage':
+                            if ($data['voltage'] > $setting->max_value) {
+                                $detectedFaults[] = 'OVERVOLTAGE SURGE';
+                            } elseif ($data['voltage'] < $setting->min_value) {
+                                $detectedFaults[] = 'UNDERVOLTAGE BROWNOUT';
+                            }
+                            break;
+                        case 'current':
+                            if ($data['current'] > $setting->max_value) {
+                                $detectedFaults[] = 'OVERCURRENT DETECTED';
+                            }
+                            break;
+                        case 'power_factor':
+                            if ($setting->min_value > 0 && $data['power_factor'] < $setting->min_value) {
+                                $detectedFaults[] = 'LOW_POWER_FACTOR';
+                            }
+                            break;
+                        case 'real_power':
+                            if ($setting->max_value > 0 && $data['real_power'] > $setting->max_value) {
+                                $detectedFaults[] = 'OVERLOAD';
+                            }
+                            break;
+                        case 'apparent_power':
+                            if ($setting->max_value > 0 && $data['apparent_power'] > $setting->max_value) {
+                                $detectedFaults[] = 'OVERAPPARENT';
+                            }
+                            break;
+                    }
                 }
             }
 

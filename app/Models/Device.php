@@ -16,6 +16,7 @@ class Device extends Model
         'last_seen_at',
         'threshold_config_version',
         'threshold_config_ack_version',
+        'threshold_config_ack_payload',
         'threshold_config_status',
         'threshold_config_error',
         'threshold_config_synced_at',
@@ -23,6 +24,7 @@ class Device extends Model
 
     protected $casts = [
         'last_seen_at' => 'datetime',
+        'threshold_config_ack_payload' => 'array',
         'threshold_config_synced_at' => 'datetime',
     ];
 

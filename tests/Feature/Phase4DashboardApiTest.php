@@ -80,6 +80,40 @@ test('status endpoint marks stale devices offline', function () {
         ]);
 });
 
+test('status endpoint prioritizes latest fault reading over stale telemetry', function () {
+    $device = Device::create([
+        'device_code' => 'SmartGuard-MTR-001',
+        'device_name' => 'Unit 1',
+        'last_seen_at' => now()->subSeconds(11),
+    ]);
+
+    $device->readings()->create([
+        'voltage' => 260,
+        'current' => 0,
+        'real_power' => 0,
+        'apparent_power' => 0,
+        'power_factor' => 0,
+        'energy_kwh' => 10,
+        'relay_status' => 0,
+        'device_status' => 'TRIP',
+        'fault_reason' => 'OVERVOLTAGE',
+        'fault_status' => 'TRIP',
+    ]);
+
+    $response = $this->getJson('/api/v1/smartguard/dashboard/status?device_code=SmartGuard-MTR-001', $this->headers);
+
+    $response->assertStatus(200)
+        ->assertJson([
+            'data' => [
+                'device_code' => 'SmartGuard-MTR-001',
+                'status' => 'TRIP',
+                'is_online' => false,
+                'relay_status' => false,
+                'fault_status' => 'TRIP',
+            ],
+        ]);
+});
+
 test('latest reading endpoint returns correct data', function () {
     $device = Device::create(['device_code' => 'SmartGuard-MTR-001', 'device_name' => 'Unit 1']);
     $device->readings()->create([

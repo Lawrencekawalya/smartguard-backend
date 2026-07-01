@@ -30,7 +30,7 @@ return [
 
     'smartguard' => [
         'api_token' => env('SMARTGUARD_API_TOKEN'),
-        'offline_after_seconds' => env('SMARTGUARD_OFFLINE_AFTER_SECONDS', 10),
+        'offline_after_seconds' => env('SMARTGUARD_OFFLINE_AFTER_SECONDS', 8),
     ],
 
     'slack' => [

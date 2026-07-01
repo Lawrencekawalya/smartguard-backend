@@ -12,6 +12,13 @@ class Fault extends Model
         'description',
         'occurred_at',
         'resolved_at',
+        'acknowledged_at',
+    ];
+
+    protected $casts = [
+        'occurred_at' => 'datetime',
+        'resolved_at' => 'datetime',
+        'acknowledged_at' => 'datetime',
     ];
 
     public function device()

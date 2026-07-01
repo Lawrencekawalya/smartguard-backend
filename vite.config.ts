@@ -7,6 +7,21 @@ import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+    build: {
+        chunkSizeWarningLimit: 650,
+        rollupOptions: {
+            onwarn(warning, warn) {
+                if (
+                    warning.code === 'INVALID_ANNOTATION' &&
+                    warning.id?.includes('reka-ui/node_modules/@vueuse/core')
+                ) {
+                    return;
+                }
+
+                warn(warning);
+            },
+        },
+    },
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.ts'],

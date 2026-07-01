@@ -61,8 +61,27 @@ class ThresholdConfigService
     {
         $device->update([
             'threshold_config_ack_version' => $status === 'ACK' ? $version : $device->threshold_config_ack_version,
+            'threshold_config_ack_payload' => $status === 'ACK' ? $this->getThresholds() : $device->threshold_config_ack_payload,
             'threshold_config_status' => $status === 'ACK' ? 'synced' : 'failed',
             'threshold_config_error' => $status === 'ACK' ? null : $message,
+            'threshold_config_synced_at' => now(),
+        ]);
+
+        return $device->fresh();
+    }
+
+    /**
+     * @param  array<string, float|int>  $thresholds
+     */
+    public function recordBoardStatus(Device $device, array $thresholds): Device
+    {
+        $version = (int) $thresholds['version'];
+
+        $device->update([
+            'threshold_config_ack_version' => $version,
+            'threshold_config_ack_payload' => $thresholds,
+            'threshold_config_status' => $version === $this->getVersion() ? 'synced' : 'board_reported',
+            'threshold_config_error' => null,
             'threshold_config_synced_at' => now(),
         ]);
 

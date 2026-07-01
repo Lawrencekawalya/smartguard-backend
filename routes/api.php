@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\EnergyAnalyticsController;
 use App\Http\Controllers\Api\EnergySettingController;
 use App\Http\Controllers\Api\FaultSettingController;
+use App\Http\Controllers\Api\MobileAlarmController;
 use App\Http\Controllers\Api\TelemetryController;
 use App\Http\Controllers\Api\ThresholdConfigController;
 use App\Http\Middleware\CheckSmartGuardToken;
@@ -37,6 +38,7 @@ Route::prefix('v1/smartguard')->middleware(CheckSmartGuardToken::class)->group(f
     Route::get('/telemetry/latest', [TelemetryController::class, 'latest']);
     Route::get('/config', [ThresholdConfigController::class, 'show']);
     Route::post('/config/ack', [ThresholdConfigController::class, 'ack']);
+    Route::post('/config/status', [ThresholdConfigController::class, 'status']);
 
     Route::prefix('dashboard')->group(function () {
         Route::get('/status', [DashboardController::class, 'status']);
@@ -50,4 +52,9 @@ Route::prefix('v1/smartguard')->middleware(CheckSmartGuardToken::class)->group(f
         Route::get('/current-trend', [DashboardController::class, 'currentTrend']);
         Route::get('/power-trend', [DashboardController::class, 'powerTrend']);
     });
+});
+
+Route::prefix('v1/mobile')->middleware(CheckSmartGuardToken::class)->group(function () {
+    Route::get('/devices/{deviceCode}/alarm-state', [MobileAlarmController::class, 'state']);
+    Route::post('/faults/{fault}/acknowledge', [MobileAlarmController::class, 'acknowledge']);
 });

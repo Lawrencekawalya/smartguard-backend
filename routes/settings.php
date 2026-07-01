@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
+use App\Models\Device;
 use App\Models\FaultSetting;
 use App\Services\EnergyAnalyticsService;
+use App\Services\ThresholdConfigService;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Support\Facades\Route;
 
@@ -27,9 +29,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::inertia('settings/appearance', 'settings/Appearance')->name('appearance.edit');
 
-    Route::get('settings/fault-thresholds', function () {
+    Route::get('settings/fault-thresholds', function (ThresholdConfigService $thresholdConfigService) {
         return Inertia\Inertia::render('settings/FaultThresholds', [
             'settings' => FaultSetting::all(),
+            'pendingConfig' => $thresholdConfigService->getThresholds(),
+            'devices' => Device::query()
+                ->select([
+                    'device_name',
+                    'device_code',
+                    'threshold_config_version',
+                    'threshold_config_ack_version',
+                    'threshold_config_ack_payload',
+                    'threshold_config_status',
+                    'threshold_config_error',
+                    'threshold_config_synced_at',
+                ])
+                ->orderBy('device_name')
+                ->get(),
         ]);
     })->name('fault-thresholds.edit');
 

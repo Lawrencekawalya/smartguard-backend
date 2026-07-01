@@ -9,6 +9,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
     Route::resource('devices', DeviceController::class);
     Route::inertia('energy', 'Energy/Index')->name('energy.index');
+    Route::inertia('documentation', 'Documentation')->name('documentation');
 });
 
 require __DIR__.'/settings.php';

@@ -112,3 +112,29 @@ test('device can report threshold config error', function () {
         ->assertJsonPath('threshold_config_status', 'failed')
         ->assertJsonPath('threshold_config_error', 'UNSAFE_LIMITS');
 });
+
+test('device can report active board threshold status without prior config push', function () {
+    $response = $this->postJson('/api/v1/smartguard/config/status', [
+        'device_code' => 'SmartGuard-MTR-001',
+        'version' => 0,
+        'max_current' => 5.0,
+        'min_voltage' => 185.0,
+        'max_voltage' => 258.0,
+        'min_power_factor' => 0.0,
+        'max_real_power' => 0.0,
+        'max_apparent_power' => 0.0,
+    ], [
+        'X-SmartGuard-Token' => 'test-token-123',
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('threshold_config_ack_version', 0)
+        ->assertJsonPath('threshold_config_ack_payload.max_current', 5)
+        ->assertJsonPath('threshold_config_status', 'board_reported');
+
+    $this->assertDatabaseHas('devices', [
+        'device_code' => 'SmartGuard-MTR-001',
+        'threshold_config_ack_version' => 0,
+        'threshold_config_status' => 'board_reported',
+    ]);
+});

@@ -55,8 +55,46 @@ class ThresholdConfigController extends Controller
             'device_code' => $device->device_code,
             'threshold_config_version' => $device->threshold_config_version,
             'threshold_config_ack_version' => $device->threshold_config_ack_version,
+            'threshold_config_ack_payload' => $device->threshold_config_ack_payload,
             'threshold_config_status' => $device->threshold_config_status,
             'threshold_config_error' => $device->threshold_config_error,
+            'threshold_config_synced_at' => $device->threshold_config_synced_at?->toIso8601String(),
+        ]);
+    }
+
+    public function status(Request $request)
+    {
+        $validated = $request->validate([
+            'device_code' => 'required|string',
+            'version' => 'required|integer|min:0',
+            'max_current' => 'required|numeric|min:0|max:5',
+            'min_voltage' => 'required|numeric|min:0|max:258',
+            'max_voltage' => 'required|numeric|min:0|max:258',
+            'min_power_factor' => 'required|numeric|min:0|max:1',
+            'max_real_power' => 'required|numeric|min:0|max:5000',
+            'max_apparent_power' => 'required|numeric|min:0|max:5000',
+        ]);
+
+        $device = Device::firstOrCreate(
+            ['device_code' => $validated['device_code']],
+            ['device_name' => 'SmartGuard Unit '.(Device::count() + 1)]
+        );
+
+        $device = $this->thresholdConfigService->recordBoardStatus($device, [
+            'version' => (int) $validated['version'],
+            'max_current' => (float) $validated['max_current'],
+            'min_voltage' => (float) $validated['min_voltage'],
+            'max_voltage' => (float) $validated['max_voltage'],
+            'min_power_factor' => (float) $validated['min_power_factor'],
+            'max_real_power' => (float) $validated['max_real_power'],
+            'max_apparent_power' => (float) $validated['max_apparent_power'],
+        ]);
+
+        return response()->json([
+            'device_code' => $device->device_code,
+            'threshold_config_ack_version' => $device->threshold_config_ack_version,
+            'threshold_config_ack_payload' => $device->threshold_config_ack_payload,
+            'threshold_config_status' => $device->threshold_config_status,
             'threshold_config_synced_at' => $device->threshold_config_synced_at?->toIso8601String(),
         ]);
     }
