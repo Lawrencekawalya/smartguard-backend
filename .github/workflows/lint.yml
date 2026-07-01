@@ -40,6 +40,14 @@ jobs:
           composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
           npm install
 
+      - name: Prepare Laravel generated frontend routes
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+          mkdir -p database
+          touch database/database.sqlite
+          php artisan wayfinder:generate --ansi
+
       - name: Check PHP formatting
         run: composer lint:check
 
