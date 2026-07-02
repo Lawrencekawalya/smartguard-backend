@@ -48,10 +48,13 @@ import { register } from '@/routes';
                 <div
                     class="flex-1 rounded-br-lg rounded-bl-lg bg-white p-6 pb-12 text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] lg:rounded-tl-lg lg:rounded-br-none lg:p-20 dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d]"
                 >
-                    <h1 class="mb-1 font-medium">Let's get started</h1>
+                    <h1 class="mb-1 font-medium">
+                        Protect and monitor your electrical system
+                    </h1>
                     <p class="mb-2 text-[#706f6c] dark:text-[#A1A09A]">
-                        Laravel has an incredibly rich ecosystem. <br />We
-                        suggest starting with the following.
+                        SmartGuard tracks voltage, current, power, energy use,
+                        relay activity, and fault events from your connected
+                        devices.
                     </p>
                     <ul class="mb-4 flex flex-col lg:mb-6">
                         <li
@@ -69,11 +72,12 @@ import { register } from '@/routes';
                                 </span>
                             </span>
                             <span>
-                                Read the
+                                Review system setup in the
                                 <a
-                                    href="https://laravel.com/docs"
+                                    href="https://smartguard.syntaxsystems.co/documentation"
                                     target="_blank"
-                                    class="ml-1 inline-flex items-center space-x-1 font-medium text-[#f53003] underline underline-offset-4 dark:text-[#FF4433]"
+                                    rel="noopener noreferrer"
+                                    class="ml-1 inline-flex items-center space-x-1 font-medium text-[#00A344] underline underline-offset-4 dark:text-[#A7FFBC]"
                                 >
                                     <span>Documentation</span>
                                     <svg
@@ -108,13 +112,12 @@ import { register } from '@/routes';
                                 </span>
                             </span>
                             <span>
-                                Watch video tutorials at
-                                <a
-                                    href="https://laracasts.com"
-                                    target="_blank"
-                                    class="ml-1 inline-flex items-center space-x-1 font-medium text-[#f53003] underline underline-offset-4 dark:text-[#FF4433]"
+                                View live protection data in the
+                                <Link
+                                    :href="dashboard()"
+                                    class="ml-1 inline-flex items-center space-x-1 font-medium text-[#00A344] underline underline-offset-4 dark:text-[#A7FFBC]"
                                 >
-                                    <span>Laracasts</span>
+                                    <span>Dashboard</span>
                                     <svg
                                         width="10"
                                         height="11"
@@ -129,19 +132,22 @@ import { register } from '@/routes';
                                             stroke-linecap="square"
                                         />
                                     </svg>
-                                </a>
+                                </Link>
                             </span>
                         </li>
                     </ul>
                     <ul class="flex gap-3 text-sm leading-normal">
                         <li>
-                            <a
-                                href="https://cloud.laravel.com"
-                                target="_blank"
-                                class="inline-block rounded-sm border border-black bg-[#1b1b18] px-5 py-1.5 text-sm leading-normal text-white hover:border-black hover:bg-black dark:border-[#eeeeec] dark:bg-[#eeeeec] dark:text-[#1C1C1A] dark:hover:border-white dark:hover:bg-white"
+                            <Link
+                                :href="
+                                    $page.props.auth.user
+                                        ? dashboard()
+                                        : login()
+                                "
+                                class="inline-block rounded-sm border border-[#102A18] bg-[#102A18] px-5 py-1.5 text-sm leading-normal text-white hover:border-[#07120B] hover:bg-[#07120B] dark:border-[#A7FFBC] dark:bg-[#A7FFBC] dark:text-[#07120B] dark:hover:border-white dark:hover:bg-white"
                             >
-                                Deploy now
-                            </a>
+                                Open dashboard
+                            </Link>
                         </li>
                     </ul>
                 </div>
