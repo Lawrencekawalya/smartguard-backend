@@ -32,8 +32,24 @@
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
         <meta name="theme-color" content="#00C853">
+        @php($appUrl = rtrim(config('app.url', url('/')), '/'))
+        <meta name="description" content="SmartGuard protects and monitors electrical systems with voltage, current, power, energy, relay, and fault analytics.">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="SmartGuard">
+        <meta property="og:title" content="SmartGuard">
+        <meta property="og:description" content="Electrical protection and energy monitoring for connected SmartGuard devices.">
+        <meta property="og:url" content="{{ $appUrl }}">
+        <meta property="og:image" content="{{ $appUrl }}/og-image.png?v=2">
+        <meta property="og:image:secure_url" content="{{ $appUrl }}/og-image.png?v=2">
+        <meta property="og:image:type" content="image/png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="SmartGuard">
+        <meta name="twitter:description" content="Electrical protection and energy monitoring for connected SmartGuard devices.">
+        <meta name="twitter:image" content="{{ $appUrl }}/og-image.png?v=2">
 
         @fonts
 
